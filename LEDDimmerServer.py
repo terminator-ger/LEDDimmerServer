@@ -22,7 +22,9 @@ from dateutil import parser
 from datetime import tzinfo, timedelta, datetime
 from collections import namedtuple
 
-
+##################
+# Set up logging
+##################
 
 # set up logging to file - see previous section for more details
 logging.basicConfig(level=logging.DEBUG,
@@ -36,26 +38,32 @@ console.setLevel(logging.DEBUG)
 # add the handler to the root logger
 logging.getLogger('').addHandler(console)
 
-# Now, we can log to the root logger, or any other logger. First the root...
 
-ZERO = timedelta(0)
+
+##################
+# Configuration
+##################
 LIGHT_START_BEFORE_ALARM_TIME = 30
-
-
-
-
-
 # PIN CONFIGURATION
+# @see http://abyz.me.uk/rpi/pigpio/index.html#Type_3
 PWM = 14 
-
 GPIO = pigpio.pi()
 
-# PIN INIT
-GPIO.set_mode(PWM, pigpio.OUTPUT)
+PORT = 8080
+HOST = '192.168.1.20'
+addr = (HOST,PORT)
 
+
+
+##################
+# Init
+##################
+ZERO = timedelta(0)
+GPIO.set_mode(PWM, pigpio.OUTPUT)
 GPIO.write(PWM, 0)
 logging.info("hardware initialized")
-
+utc = UTC()
+epoch = datetime.utcfromtimestamp(0)
 
 
 class UTC(tzinfo):
@@ -66,23 +74,19 @@ class UTC(tzinfo):
   def dst(self, dt):
     return ZERO
 
-utc = UTC()
-epoch = datetime.utcfromtimestamp(0)
-
-#http stuff
-PORT = 8080
-HOST = '192.168.1.20'
-addr = (HOST,PORT)
-#ResponseMessage = {
-#               "OK": ResponseStatus(code=200, message="OK"),
-#               "BAD_REQUEST": ResponseStatus(code=400, message="Bad request"),
-#               "NOT_FOUND": ResponseStatus(code=404, message="Not found"),
-#               "INTERNAL_SERVER_ERROR": ResponseStatus(code=500, message="Internal server error")}
-
-
 
 class HTTPHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
-    
+    '''
+    HttpHandler contains the servers logic. As it subclasses
+    SimpleHTTPServer all incoming REST-Messages are passed to the
+    corresponding functions. We just need PUT.
+    Message definition:
+    PUT /incr
+    PUT /decr
+    PUT /toggle
+    PUT /sunrise
+    PUT /wakeuptime [utc-time-in-ms]
+    '''
     br = 0
     wakeup_task = None 
     isInWakeupsequence = False
