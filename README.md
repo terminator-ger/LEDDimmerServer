@@ -22,7 +22,7 @@ sudo crontab -e
 and then add the lines
 ```bash
 @reboot     /usr/local/bin/pigpiod
-@reboot     nohup python /home/pi/LEDDimmerServer/LEDDimmerServer.py &
+@reboot     nohup python LEDDimmerServer.py &
 ```
 to start the gpio daemon and the LEDDimmer.
 
