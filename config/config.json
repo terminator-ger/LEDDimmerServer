@@ -1,0 +1,9 @@
+{
+    "profile": "default",
+    "GPIO_PWM": 14,
+    "GPIO_R": 17,
+    "GPIO_G": 22,
+    "GPIO_B": 24,
+    "host": "led_light.local",
+    "port": 8080
+}

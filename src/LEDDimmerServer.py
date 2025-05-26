@@ -44,14 +44,23 @@ logging.getLogger('').addHandler(console)
 
 def parse_arguments():
     argparser = argparse.ArgumentParser('LED SUNLIGHT TOOL')
-    argparser.add_argument("host", default='led.local')
-    argparser.add_argument("port", default=8080, type=int)
-    return argparser.parse_args()
+    argparser.add_argument("host", default=argparse.SUPPRESS)
+    argparser.add_argument("port", default=argparse.SUPPRESS)
+    argparse_config = argparser.parse_args()
+
+    with open("config/config.json", 'r') as cfg_file:
+        json_config = json.load(cfg_file)
+
+    # fill in config from json if they are not give by argparse
+    for k_j, v_j in json_config:
+        if k_j not in argparse_config.__dict__:
+            argparse_config.__dict__[k_j] = v_j
+    return argparse_config
 
 
-def http_thread(addr):
+def http_thread(config):
     try:
-        httpd = HTTPServer(addr, HTTPHandler)
+        httpd = HTTPServer(config, HTTPHandler)
         logging.info("- start httpd")
         httpd.serve_forever()
     except Exception as e:
@@ -61,10 +70,9 @@ def http_thread(addr):
 # HTTP POST Server for Handling LED Widget commands    #
 ########################################################
 if __name__=='__main__':
-    args = parse_arguments()
-    addr = (args.host, args.port) 
-    
-    server = Thread(target=http_thread, args=[addr])
+    config = parse_arguments()
+        
+    server = Thread(target=http_thread, args=config)
     server.daemon = True # Do not make us wait for you to exit
     server.start()
     signal.pause() # Wait for interrupt signal, e.g. KeyboardInterrupt

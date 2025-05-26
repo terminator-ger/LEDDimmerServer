@@ -23,18 +23,35 @@ from collections import namedtuple
 
 from src.config import GPIO, PWM, LIGHT_START_BEFORE_ALARM_TIME
 from src.utc import UTC
+from warnings import deprecated
+import pigpio
+from threading import Lock
+from src.color import get_sunrise_color, get_sunrise_intensity
 
 class HTTPHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
-    def __init__(self):
+    def __init__(self, config):
         self.br = 0
         self.wakeup_task = None 
-        self.isInWakeupsequence = False
-        GPIO.set_mode(PWM, pigpio.OUTPUT)
-        GPIO.write(PWM, 0)
+        self.isInWakeupsequence = Lock()
+        self.config = config
+        #self.PWM = config.GPIO_PWM
+        #self.
+
+        # PIN CONFIGURATION
+        # @see http://abyz.me.uk/rpi/pigpio/index.html#Type_3
+        self.GPIO = pigpio.pi()
+        self.GPIO.set_mode(self.config.GPIO_PWM, pigpio.OUTPUT)
+        self.GPIO.write(self.config.GPIO_PWM, 0)
         logging.info("hardware initialized")
         self.utc = UTC()
-        self.epoch = datetime.utcfromtimestamp(0)
+        self.epoch = datetime.fromtimestamp(datetime.timezone.utc)
 
+        #self.grad_curve = config.gradient
+        #self.grad_interpolation = config.gradient_interpolation
+        #self.color = config.color
+        #self.color_interpolation = config.color_interpolation
+        #self.wakeup_sequence_len = config.wakeup_sequence_len
+        #self.pwm_steps = config.pwm_steps
 
     '''
     self contains the servers logic. As it subclasses
@@ -52,14 +69,14 @@ class HTTPHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
    
     def disable_pwm(self):
         logging.info("disabling ports")
-        GPIO.write(PWM, 0)
+        self.GPIO.write(PWM, 0)
 
     def enable_pwm(self):
         logging.info("enabling ports")
-        GPIO.write(PWM, 1)
+        self.GPIO.write(PWM, 1)
 
     def pwm_is_enabled(self):
-        return (GPIO.read(PWM) == 1)
+        return (self.GPIO.read(PWM) == 1)
 
     def unix_time_ms(self, dt):
         return (dt-self.epoch).total_seconds() * 1000.0
@@ -73,16 +90,17 @@ class HTTPHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
             self.br = 0
             self.disable_pwm()
             # disable wakeup if we are right in one...
-            if self.isInWakeupsequence == True:
+            if self.isInWakeupsequence.locked():
                 if self.wakeup_task is not None:
                     self.wakeup_task.cancel()
-                    self.isInWakeupsequence = False
+                    self.isInWakeupsequence.release_lock()
         else:
             self.br = 255
             self.enable_pwm()
             logging.debug(self.br)
-        GPIO.set_PWM_dutycycle(PWM, self.br)
-        
+        self.GPIO.set_PWM_dutycycle(PWM, self.br)
+
+    @deprecated()
     def _put_on(self):
         logging.debug( "DEPRECATED --- ON")
         self.send_response(200,"ON_OK")
@@ -92,8 +110,9 @@ class HTTPHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
         self.br = 255
         logging.debug(self.br)
         self.enable_pwm()
-        GPIO.set_PWM_dutycycle(PWM, self.br)
+        self.GPIO.set_PWM_dutycycle(PWM, self.br)
 
+    @deprecated()
     def _put_off(self):
         logging.debug("DEPRECATED --- OFF")
         self.send_response(200,"OFF_OK")
@@ -102,7 +121,7 @@ class HTTPHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
         self.wfile.write("")
         self.br = 0
         self.disable_pwm()
-        GPIO.set_PWM_dutycycle(PWM, self.br)
+        self.GPIO.set_PWM_dutycycle(PWM, self.br)
     
     def _put_incr(self):
         logging.debug("--- INCR")
@@ -111,7 +130,7 @@ class HTTPHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
         self.end_headers()
         self.wfile.write("")
         self.br = min(self.br + 10, 255)
-        GPIO.set_PWM_dutycycle(PWM, int(self.br))
+        self.GPIO.set_PWM_dutycycle(PWM, int(self.br))
         
     def _put_decr(self):
         logging.debug("--- DECR")
@@ -122,7 +141,7 @@ class HTTPHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
 
         self.br = max(self.br - 10,0)
         logging.debug(self.br)
-        GPIO.set_PWM_dutycycle(PWM, int(self.br))
+        self.GPIO.set_PWM_dutycycle(PWM, int(self.br))
         if self.br < 0:
             self.disable_pwm() 
     
@@ -197,13 +216,20 @@ class HTTPHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
         self.wakeup_task.start()
                
         self.wfile.write("%f"%wakeup_time) 
+    
+    def _put_color(self, data_string):
+        '''
+            name [[rgb], [rgb], ...]
+        '''
         
+
     def do_PUT(self):
         logging.debug("-- PUT")
         length = int(self.headers["Content-Length"])
         path = self.translate_path(self.path)
         data_string = self.rfile.read(length)
         print(data_string)
+
         if "/toggle" in self.path:
             self._put_toggle()
 
@@ -226,17 +252,30 @@ class HTTPHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
             self._put_sunrise()
             
         if '/color' in path:
-           pass 
+            self._put_color(data_string)
+
+        if '/gradient' in path:
+            self._put_gradient(data_string)
+
 
 
 
     def startIncrLight(self):
         logging.debug("starting up with the lightshow")
         self.enable_pwm()
-        self.isInWakeupsequence = True
-        val = 0         
-        for t in range(0,59):
-            val = int(255.0/59.0)*t
-            logging.info(("setting light to " + str(val)))
-            GPIO.set_PWM_dutycycle(PWM, val)
-            time.sleep(30)
+        self.isInWakeupsequence.acquire_lock()
+        pause = (self.config.wakeup_sequence_len * 60) / self.config.pwm_steps
+
+        for progress in range(0, self.config.pwd_steps):
+            p = progress / self.pwm_steps
+            lum = get_sunrise_intensity(p, self.config.grad_interpolation, self.config.gradient)
+            logging.info(("setting light to " + str(lum)))
+            self.GPIO.set_PWM_dutycycle(self.config.GPIO_PWM, lum)
+
+            if self.color:
+                r, g, b = get_sunrise_color(p, self.config.color_interpolation, self.config.color)
+                self.GPIO.set_PWM_dutycycle(self.config.GPIO_R, r)
+                self.GPIO.set_PWM_dutycycle(self.config.GPIO_G, g)
+                self.GPIO.set_PWM_dutycycle(self.config.GPIO_B, b)
+
+            time.sleep(pause)
