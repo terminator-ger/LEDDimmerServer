@@ -26,7 +26,7 @@ from src.utc import UTC
 from warnings import deprecated
 import pigpio
 from threading import Lock
-from src.color import get_sunrise_color, get_sunrise_intensity
+from src.color import get_sunrise_color, get_sunrise_intensity, modify_json
 
 class HTTPHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
     def __init__(self, config):
@@ -212,15 +212,48 @@ class HTTPHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
         logging.debug("killing old wakeups")
         if self.wakeup_task is not None:
             self.wakeup_task.cancel()
-        self.wakeup_task = Timer(t.total_seconds() - (LIGHT_START_BEFORE_ALARM_TIME * 60), self.startIncrLight)
+        self.wakeup_task = Timer(t.total_seconds() - (self.config.active_profile.wakeup_sequence_len * 60), self.startIncrLight)
         self.wakeup_task.start()
                
         self.wfile.write("%f"%wakeup_time) 
-    
+
+
     def _put_color(self, data_string):
         '''
             name [[rgb], [rgb], ...]
         '''
+        key, values = data_string.split(" ")
+        values = [f"#{x}" for x in values]
+        modify_json(key, values, "colors.json") 
+        
+
+    def _put_gradient(self, data_string):
+        '''
+            name [[rgb], [rgb], ...]
+        '''
+        key, values = data_string.split(" ")
+        values = [float(x) for x in values]
+        modify_json(key, values, "gradient.json") 
+        
+
+    def _put_preset(self, data_string):
+        '''
+            preset color color_interpolation gradient gradient_interpolation wakeup_sequence_len pwm_steps
+        '''
+        key, values = data_string.split(" ")
+        _dict = {"color": values[0],
+                 "color_interpolation": values[1],
+                 "gradient": values[2],
+                 "gradient_interpolation": values[3],
+                 "wakeup_sequence_len": values[4],
+                 "pwm_steps": values[5]
+        }
+        modify_json(key, _dict, 'presets.json')
+   
+    
+    def _put_default(self, data_string):
+        _, profile = data_string.split(" ")
+        modify_json('profile', profile, 'config.json')
         
 
     def do_PUT(self):
@@ -257,7 +290,11 @@ class HTTPHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
         if '/gradient' in path:
             self._put_gradient(data_string)
 
+        if '/preset' in path:
+            self._put_preset(data_string)
 
+        if '/default' in path:
+            self._put_default(data_string)
 
 
     def startIncrLight(self):

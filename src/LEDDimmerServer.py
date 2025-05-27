@@ -51,10 +51,19 @@ def parse_arguments():
     with open("config/config.json", 'r') as cfg_file:
         json_config = json.load(cfg_file)
 
+    with open("config/presets.json", 'r') as cfg_file:
+        active_profile = json.load(cfg_file)
+        _key = "default"
+        if 'profile' in json_config and json_config['profile'] in active_profile:
+            _key = json_config['profile']
+        active_profile[_key]
+
     # fill in config from json if they are not give by argparse
     for k_j, v_j in json_config:
         if k_j not in argparse_config.__dict__:
             argparse_config.__dict__[k_j] = v_j
+
+    argparse_config.__dict__['active_profile'] = active_profile
     return argparse_config
 
 
