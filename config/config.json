@@ -1,5 +1,12 @@
 {
-    "profile": "default",
+    "sunrise_profile": "default",
+    "on_off_w": 255,
+    "on_off_r": 255,
+    "on_off_g": 255,
+    "on_off_b": 255,
+    "is_rgbw": true,
+    "is_rgb": false,
+    "is_w": false,
     "GPIO_PWM": 14,
     "GPIO_R": 17,
     "GPIO_G": 22,

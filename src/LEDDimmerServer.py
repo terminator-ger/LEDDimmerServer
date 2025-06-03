@@ -55,7 +55,7 @@ def parse_arguments():
         active_profile = json.load(cfg_file)
         _key = "default"
         if 'profile' in json_config and json_config['profile'] in active_profile:
-            _key = json_config['profile']
+            _key = json_config['sunrise_profile']
         active_profile[_key]
 
     # fill in config from json if they are not give by argparse
@@ -63,7 +63,7 @@ def parse_arguments():
         if k_j not in argparse_config.__dict__:
             argparse_config.__dict__[k_j] = v_j
 
-    argparse_config.__dict__['active_profile'] = active_profile
+    argparse_config.__dict__['sunrise_profile'] = active_profile
     return argparse_config
 
 

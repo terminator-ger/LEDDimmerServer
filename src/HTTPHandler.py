@@ -30,7 +30,7 @@ from src.color import get_sunrise_color, get_sunrise_intensity, modify_json
 
 class HTTPHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
     def __init__(self, config):
-        self.br = 0
+        self.w_intensity = 0
         self.wakeup_task = None 
         self.isInWakeupsequence = Lock()
         self.config = config
@@ -40,8 +40,18 @@ class HTTPHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
         # PIN CONFIGURATION
         # @see http://abyz.me.uk/rpi/pigpio/index.html#Type_3
         self.GPIO = pigpio.pi()
-        self.GPIO.set_mode(self.config.GPIO_PWM, pigpio.OUTPUT)
-        self.GPIO.write(self.config.GPIO_PWM, 0)
+        if self.config.is_w or self.config.is_rgbw:
+            self.GPIO.set_mode(self.config.GPIO_PWM, pigpio.OUTPUT)
+            self.GPIO.write(self.config.GPIO_PWM, 0)
+        
+        if self.config.is_rgbw or self.config.is_rgb:
+            self.GPIO.set_mode(self.config.GPIO_R, pigpio.OUTPUT)
+            self.GPIO.set_mode(self.config.GPIO_G, pigpio.OUTPUT)
+            self.GPIO.set_mode(self.config.GPIO_B, pigpio.OUTPUT)
+            self.GPIO.write(self.config.GPIO_R, 0)
+            self.GPIO.write(self.config.GPIO_G, 0)
+            self.GPIO.write(self.config.GPIO_B, 0)
+            
         logging.info("hardware initialized")
         self.utc = UTC()
         self.epoch = datetime.fromtimestamp(datetime.timezone.utc)
@@ -86,19 +96,39 @@ class HTTPHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
         self.send_response(200,"TOGGLE_OK")
         self.send_header("Content-type","text/html")
         self.end_headers()
-        if self.br > 0:
-            self.br = 0
+        if self.w_intensity > 0 or any([self.r_intensity > 0, self.g_intensity > 0, self.b_intensity > 0]):
+            # light off
+            if self.config.is_w or self.config.is_rgbw:
+                modify_json("on_off_w", self.on_off_w, "config/config.json")
+            if self.config.is_rgbw or self.config.rgb:
+                modify_json("on_off_r", self.on_off_r, "config/config.json")
+                modify_json("on_off_g", self.on_off_g, "config/config.json")
+                modify_json("on_off_b", self.on_off_b, "config/config.json")
+
             self.disable_pwm()
-            # disable wakeup if we are right in one...
+            # disable wakeup if there is one active...
             if self.isInWakeupsequence.locked():
                 if self.wakeup_task is not None:
                     self.wakeup_task.cancel()
                     self.isInWakeupsequence.release_lock()
         else:
-            self.br = 255
+            # light on - load from flash
             self.enable_pwm()
-            logging.debug(self.br)
-        self.GPIO.set_PWM_dutycycle(PWM, self.br)
+            if self.config.is_w or self.config.is_rgbw:
+                self.w_intensity = self.config.on_off_w
+                logging.debug(f"set w: {self.w_intensity}")
+                self.GPIO.set_PWM_dutycycle(PWM, self.w_intensity)
+            if self.config.is_rgbw or self.config.rgb:
+                self.r_intensity = self.config.on_off_r
+                self.g_intensity = self.config.on_off_g
+                self.b_intensity = self.config.on_off_b
+                logging.debug(f"set r: {self.r_intensity}")
+                logging.debug(f"set g: {self.g_intensity}")
+                logging.debug(f"set b: {self.b_intensity}")
+                self.GPIO.set_PWM_dutycycle(PWM, self.r_intensity)
+                self.GPIO.set_PWM_dutycycle(PWM, self.g_intensity)
+                self.GPIO.set_PWM_dutycycle(PWM, self.b_intensity)
+
 
     @deprecated()
     def _put_on(self):
@@ -107,10 +137,24 @@ class HTTPHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
         self.send_response(200,"OFF_OK")
         self.send_header("Content-type","text/html")
         self.end_headers()
-        self.br = 255
-        logging.debug(self.br)
+
         self.enable_pwm()
-        self.GPIO.set_PWM_dutycycle(PWM, self.br)
+        self.GPIO.set_PWM_dutycycle(PWM, self.w_intensity)
+
+        if self.config.is_w or self.config.is_rgbw:
+            self.w_intensity = self.config.on_off_w
+            logging.debug(f"set w: {self.w_intensity}")
+            self.GPIO.set_PWM_dutycycle(PWM, self.w_intensity)
+        if self.config.is_rgbw or self.config.rgb:
+            self.r_intensity = self.config.on_off_r
+            self.g_intensity = self.config.on_off_g
+            self.b_intensity = self.config.on_off_b
+            logging.debug(f"set r: {self.r_intensity}")
+            logging.debug(f"set g: {self.g_intensity}")
+            logging.debug(f"set b: {self.b_intensity}")
+            self.GPIO.set_PWM_dutycycle(PWM, self.r_intensity)
+            self.GPIO.set_PWM_dutycycle(PWM, self.g_intensity)
+            self.GPIO.set_PWM_dutycycle(PWM, self.b_intensity)
 
     @deprecated()
     def _put_off(self):
@@ -119,9 +163,9 @@ class HTTPHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
         self.send_header("Content-type","text/html")
         self.end_headers()
         self.wfile.write("")
-        self.br = 0
+        self.w_intensity = 0
         self.disable_pwm()
-        self.GPIO.set_PWM_dutycycle(PWM, self.br)
+        self.GPIO.set_PWM_dutycycle(PWM, self.w_intensity)
     
     def _put_incr(self):
         logging.debug("--- INCR")
@@ -129,8 +173,8 @@ class HTTPHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
         self.send_header("Content-type","text/html")
         self.end_headers()
         self.wfile.write("")
-        self.br = min(self.br + 10, 255)
-        self.GPIO.set_PWM_dutycycle(PWM, int(self.br))
+        self.w_intensity = min(self.w_intensity + 10, 255)
+        self.GPIO.set_PWM_dutycycle(PWM, int(self.w_intensity))
         
     def _put_decr(self):
         logging.debug("--- DECR")
@@ -139,10 +183,10 @@ class HTTPHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
         self.end_headers()
         self.wfile.write("")
 
-        self.br = max(self.br - 10,0)
-        logging.debug(self.br)
-        self.GPIO.set_PWM_dutycycle(PWM, int(self.br))
-        if self.br < 0:
+        self.w_intensity = max(self.w_intensity - 10,0)
+        logging.debug(self.w_intensity)
+        self.GPIO.set_PWM_dutycycle(PWM, int(self.w_intensity))
+        if self.w_intensity < 0:
             self.disable_pwm() 
     
     def _put_wakeuptime(self, data_string):
