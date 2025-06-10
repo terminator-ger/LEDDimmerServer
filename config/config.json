@@ -1,16 +1,12 @@
 {
     "sunrise_profile": "default",
-    "on_off_w": 255,
-    "on_off_r": 255,
-    "on_off_g": 255,
-    "on_off_b": 255,
-    "is_rgbw": true,
-    "is_rgb": false,
-    "is_w": false,
-    "GPIO_PWM": 14,
+    "has_rgb": true,
+    "has_w": true,
     "GPIO_R": 17,
-    "GPIO_G": 22,
-    "GPIO_B": 24,
+    "GPIO_G": 27,
+    "GPIO_B": 22,
+    "GPIO_RGB_PWM": 18,
+    "GPIO_W_PWM": 19,
     "host": "led_light.local",
     "port": 8080
 }

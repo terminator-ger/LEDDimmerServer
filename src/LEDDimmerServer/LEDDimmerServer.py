@@ -1,31 +1,17 @@
-import pigpio
 import signal
-import SocketServer
-import simplejson
-import time
-import ephem
-import requests
 import json
-import ephem
-import subprocess
-import pytz
-import sys
 import logging
-import math
-from datetime import datetime
-from astral import Astral,Location
-from BaseHTTPServer import HTTPServer, BaseHTTPRequestHandler
+from http.server import HTTPServer
 from threading import Thread
-from threading import Timer
-from datetime import datetime
-from dateutil import parser
-from datetime import tzinfo, timedelta, datetime
-from collections import namedtuple
 import argparse
 
-from .config import GPIO, PWM
-from .utc import UTC
-from .HTTPHandler import HTTPHandler
+from LEDDimmerServer.utc import UTC
+from LEDDimmerServer.HTTPHandler import HTTPHandler
+import os
+from pathlib import Path
+
+ROOT_DIR = Path(os.path.abspath(__file__)).parent.parent.parent.absolute()
+
 ##################
 # Set up logging
 ##################
@@ -48,10 +34,10 @@ def parse_arguments():
     argparser.add_argument("port", default=argparse.SUPPRESS)
     argparse_config = argparser.parse_args()
 
-    with open("config/config.json", 'r') as cfg_file:
+    with open(os.path.join(ROOT_DIR, "config/config.json"), 'r') as cfg_file:
         json_config = json.load(cfg_file)
 
-    with open("config/presets.json", 'r') as cfg_file:
+    with open(os.path.join(ROOT_DIR, "config/presets.json"), 'r') as cfg_file:
         active_profile = json.load(cfg_file)
         _key = "default"
         if 'profile' in json_config and json_config['profile'] in active_profile:
@@ -59,17 +45,19 @@ def parse_arguments():
         active_profile[_key]
 
     # fill in config from json if they are not give by argparse
-    for k_j, v_j in json_config:
+    for k_j, v_j in json_config.items():
         if k_j not in argparse_config.__dict__:
             argparse_config.__dict__[k_j] = v_j
 
     argparse_config.__dict__['sunrise_profile'] = active_profile
-    return argparse_config
+    return argparse_config.__dict__
 
 
 def http_thread(config):
     try:
-        httpd = HTTPServer(config, HTTPHandler)
+        from functools import partial
+        HTTPHandlerConfigWrapper = partial(HTTPHandler, config)
+        httpd = HTTPServer(server_address=(config['host'], config['port']), RequestHandlerClass=HTTPHandlerConfigWrapper)
         logging.info("- start httpd")
         httpd.serve_forever()
     except Exception as e:
