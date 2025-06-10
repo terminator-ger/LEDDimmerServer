@@ -5,12 +5,9 @@ Author: Michael Lechner
 Author-email: michael.lechner@t-online.de
 Requires-Dist: gpiozero
 Requires-Dist: astral
-Requires-Dist: gpiozero
 Requires-Dist: pytz
 Requires-Dist: requests
 Requires-Dist: simplejson
-Requires-Dist: numpy
-Requires-Dist: scipy
 Provides-Extra: develop
 Requires-Dist: pre-commit; extra == "develop"
 Requires-Dist: bump2version; extra == "develop"

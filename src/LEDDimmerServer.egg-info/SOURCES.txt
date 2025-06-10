@@ -6,6 +6,7 @@ src/LEDDimmerServer/LEDDimmerServer.py
 src/LEDDimmerServer/__init__.py
 src/LEDDimmerServer/color.py
 src/LEDDimmerServer/utc.py
+src/LEDDimmerServer/utils.py
 src/LEDDimmerServer.egg-info/PKG-INFO
 src/LEDDimmerServer.egg-info/SOURCES.txt
 src/LEDDimmerServer.egg-info/dependency_links.txt
