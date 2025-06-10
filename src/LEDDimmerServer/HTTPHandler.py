@@ -23,6 +23,7 @@ from typing import Dict
 
 from LEDDimmerServer.color import get_sunrise_color, get_sunrise_intensity, modify_json
 from LEDDimmerServer.utc import UTC
+from LEDDimmerServer import ROOT_DIR
 
 from functools import partial
 
@@ -288,8 +289,7 @@ class HTTPHandler(SimpleHTTPRequestHandler):
         modify_json('profile', profile, 'config.json')
     
     def _update(self):
-        os.spawnl(os.P_DETACH, f'/bin/bash {}/sunrisr_update.sh')
-        sys.exit(0)
+        sys.exit(42) #quit with code for update
         
 
     def do_PUT(self):

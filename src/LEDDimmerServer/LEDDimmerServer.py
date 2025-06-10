@@ -5,13 +5,10 @@ from http.server import HTTPServer
 from threading import Thread
 import argparse
 
+from LEDDimmerServer import ROOT_DIR
 from LEDDimmerServer.utc import UTC
 from LEDDimmerServer.HTTPHandler import HTTPHandler
 import os
-from pathlib import Path
-
-ROOT_DIR = Path(os.path.abspath(__file__)).parent.parent.parent.absolute()
-
 ##################
 # Set up logging
 ##################
