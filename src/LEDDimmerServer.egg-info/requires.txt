@@ -1,0 +1,12 @@
+gpiozero
+astral
+gpiozero
+pytz
+requests
+simplejson
+numpy
+scipy
+
+[develop]
+pre-commit
+bump2version

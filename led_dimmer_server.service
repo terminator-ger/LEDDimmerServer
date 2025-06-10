@@ -1,0 +1,13 @@
+server1:/etc/systemd/system # cat /etc/systemd/system/test.service
+[Unit]
+Description=LED Dimmer Python Server
+
+[Service]
+Type=simple
+Restart=always
+RestartSec=1
+User=pi
+ExecStart=/bin/python LEDDimmerServer
+
+[Install]
+WantedBy=multi-user.target
