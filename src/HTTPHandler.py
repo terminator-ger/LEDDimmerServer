@@ -3,7 +3,9 @@ import signal
 import SocketServer
 import simplejson
 import time
+import os
 import ephem
+import sys
 import requests
 import json
 import ephem
@@ -298,6 +300,10 @@ class HTTPHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
     def _put_default(self, data_string):
         _, profile = data_string.split(" ")
         modify_json('profile', profile, 'config.json')
+    
+    def _update(self):
+        os.spawnl(os.P_DETACH, f'/bin/bash {}/sunrisr_update.sh')
+        sys.exit(0)
         
 
     def do_PUT(self):
@@ -339,6 +345,9 @@ class HTTPHandler(SimpleHTTPServer.SimpleHTTPRequestHandler):
 
         if '/default' in path:
             self._put_default(data_string)
+            
+        if '/update' in path:
+            self._update()
 
 
     def startIncrLight(self):
