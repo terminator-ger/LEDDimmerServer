@@ -1,10 +1,5 @@
-import pigpio
-import signal
-import SocketServer
 import simplejson
 import time
-import os
-import ephem
 import sys
 import requests
 import json
@@ -12,7 +7,6 @@ import logging
 import time
 from datetime import datetime, timedelta, timezone
 from threading import Lock, Timer
-from warnings import deprecated
 from http.server import SimpleHTTPRequestHandler
 from gpiozero import PWMLED, RGBLED
 import pytz
@@ -23,9 +17,6 @@ from typing import Dict
 
 from LEDDimmerServer.color import get_sunrise_color, get_sunrise_intensity, modify_json
 from LEDDimmerServer.utc import UTC
-from LEDDimmerServer import ROOT_DIR
-
-from functools import partial
 
 
 class HTTPHandler(SimpleHTTPRequestHandler):

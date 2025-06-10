@@ -1,7 +1,4 @@
-import numpy as np
 import json
-from scipy.interpolate import CubicSpline
-
 
 def load_json(f, name="sunrise_01_rgb"):
     colors = json.load(f)
@@ -29,6 +26,14 @@ def hex2np(color_hex_code):
     b = int(color_hex_code[4:], 16)
     return r,g,b
 
+def interp(x0, xs, ys):
+    for x,y in zip(xs,ys):
+        if x==x0:       # <- exact "hit"
+            return y
+        if x>x0:        # px<x0<x - assuming there was a px already
+            return py+(y-py)*(x0-px)/(x-px)
+        px=x
+        py=y
 
 def get_sunrise_color(t_cur, interpolation='linear', scale="sunrise_01_rgb") -> tuple[float, float, float]:
     """
@@ -38,13 +43,10 @@ def get_sunrise_color(t_cur, interpolation='linear', scale="sunrise_01_rgb") -> 
     colors = [hex2np(x) for x in color_pallet]
     time_ref = [0, .25, .5, .75, 1]
     if interpolation == 'linear':
-        r,g,b = [np.interp(t_cur, time_ref, color) for color in colors]
-    elif interpolation == 'poly':
-        r_cs, g_cs, b_cs = [CubicSpline(time_ref, color) for color in colors]
-        r, b, b = r_cs[t_cur], g_cs[t_cur], b_cs[t_cur]
+        r,g,b = [interp(t_cur, time_ref, color) for color in colors]
     else:
         # fallback linear
-        r, g, b = [np.interp(t_cur, time_ref, color) for color in colors]
+        r, g, b = [interp(t_cur, time_ref, color) for color in colors]
     
     r /= 255
     g /= 255
@@ -57,13 +59,10 @@ def get_sunrise_intensity(t_cur, interpolation='linear', gradient="exp") -> floa
     time_ref = [0, .25, .5, .75, 1]
 
     if interpolation == 'linear':
-        lum = np.interp(t_cur, time_ref, grad)
-    elif interpolation == 'poly':
-        cs = CubicSpline(time_ref, grad)
-        lum = cs[t_cur]
+        lum = interp(t_cur, time_ref, grad)
     else:
-        # fallback linear
-        lum = np.interp(t_cur, time_ref, lum)
+        lum = interp(t_cur, time_ref, grad)
+        
     return lum
 
 

@@ -11,7 +11,7 @@ setup(
     author_email="michael.lechner@t-online.de",
     packages=find_packages("src"),
     package_dir={"": "src"},
-    install_requires=["gpiozero", "astral", "gpiozero", "pytz", "requests", "simplejson", "numpy", "scipy"],
+    install_requires=["gpiozero", "astral", "pytz", "requests", "simplejson"],
     tests_require=["pytest", "pytest-nunit", "pytest-cov"],
     extras_require={"develop": ["pre-commit", "bump2version"]},
 )
