@@ -1,3 +1,4 @@
+import signal
 from LEDDimmerServer.LEDDimmer import LEDDimmer, parse_arguments
 from http.server import HTTPServer
 from threading import Thread
@@ -37,4 +38,5 @@ if __name__=='__main__':
     server = Thread(target=http_thread, args=(parse_arguments(),))
     server.daemon = True # Do not make us wait for you to exit
     server.start()
+    signal.wait(server)  # Wait for the server thread to finish
     #signal.pause() # Wait for interrupt signal, e.g. KeyboardInterrupt
