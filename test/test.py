@@ -1,8 +1,12 @@
+from functools import partial
 import unittest
-from LEDDimmerServer.LEDDimmerServer import HTTPHandler, parse_arguments
+from LEDDimmerServer.LEDDimmer import HTTPHandler, parse_arguments
 from http.server import HTTPServer
 import time
 import sys
+from LEDDimmerServer.__main__ import http_thread
+from LEDDimmerServer.DimmerBackend import DimmerBackend
+from threading import Thread
 
 class LEDDimmerServerTest(unittest.TestCase):
     def setUp(self):
@@ -10,29 +14,29 @@ class LEDDimmerServerTest(unittest.TestCase):
         from gpiozero.pins.mock import MockFactory, MockPWMPin
         Device.pin_factory = MockFactory(pin_class=MockPWMPin)
         return super().setUp()
-
+    
     def test_setup_with_config(self):
         try:
             old_sys_argv = sys.argv
-            sys.argv = [old_sys_argv[0]] + ["127.0.0.1", "8080"]
+            sys.argv = [old_sys_argv[0]] + ["--host", "127.0.0.1", "--port", "8080"]
             config = parse_arguments()
-            from functools import partial
-            HTTPHandlerConfigWrapper = partial(HTTPHandler, config)
-            srv = HTTPServer(server_address=("127.0.0.1", 8080), RequestHandlerClass=HTTPHandlerConfigWrapper)
-            srv.serve_forever()
+            server = Thread(target=http_thread, args=config)
+            server.daemon = True # Do not make us wait for you to exit
+            server.start()
             time.sleep(1)
-            srv.server_close()
+            server.join()
             assert True
         except Exception:
             assert False
 
     def test_toggle_rgb(self):
+        sys.argv=[]
         config = parse_arguments()
         config["has_rgb"] = True
         config["has_w"] = False
-        handler = HTTPHandler(config)
-        handler._put_toggle()
-        assert handler.pwm_is_enabled == True
+        backend = DimmerBackend(config)
+        backend.toggle()
+        assert backend.GPIO_RGB_PWM.is_active == True
  
 class ColorConversionTest(unittest.TestCase):
     _table = [

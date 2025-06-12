@@ -1,6 +1,7 @@
 README.md
 pyproject.toml
 setup.py
+src/LEDDimmerServer/DimmerBackend.py
 src/LEDDimmerServer/HTTPHandler.py
 src/LEDDimmerServer/LEDDimmerServer.py
 src/LEDDimmerServer/__init__.py
