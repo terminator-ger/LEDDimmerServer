@@ -38,5 +38,5 @@ if __name__=='__main__':
     server = Thread(target=http_thread, args=(parse_arguments(),))
     server.daemon = True # Do not make us wait for you to exit
     server.start()
-    signal.wait(server)  # Wait for the server thread to finish
+    server.join()
     #signal.pause() # Wait for interrupt signal, e.g. KeyboardInterrupt
