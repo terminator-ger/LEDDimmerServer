@@ -1,6 +1,5 @@
 import os
 import json
-import logging
 
 import argparse
 
@@ -24,10 +23,10 @@ def parse_arguments():
     argparser.add_argument("--port", default=8080, type=int)
     argparse_config = argparser.parse_args()
 
-    with open(os.path.join(ROOT_DIR, "config/config.json"), 'r') as cfg_file:
+    with open(os.path.join(ROOT_DIR, "config/config.json"), 'r', encoding="utf-8") as cfg_file:
         json_config = json.load(cfg_file)
 
-    with open(os.path.join(ROOT_DIR, "config/presets.json"), 'r') as cfg_file:
+    with open(os.path.join(ROOT_DIR, "config/presets.json"), 'r', encoding="utf-8") as cfg_file:
         active_profile = json.load(cfg_file)
         _key = "default"
         if 'profile' in json_config and json_config['profile'] in active_profile:

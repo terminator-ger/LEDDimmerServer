@@ -1,23 +1,6 @@
-import simplejson
-import time
-import sys
-import requests
-import json
 import logging
-import time
-from datetime import datetime, timedelta, timezone
-from threading import Lock, Timer
 from http.server import SimpleHTTPRequestHandler
-from gpiozero import PWMLED, RGBLED
-import pytz
-import requests
-import simplejson
-import astral
-from typing import Dict
 
-from LEDDimmerServer.color import get_sunrise_color, get_sunrise_intensity, modify_json
-from LEDDimmerServer.utc import UTC
-from LEDDimmerServer.DimmerBackend import DimmerBackend
 
 class HTTPHandler(SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
@@ -25,18 +8,25 @@ class HTTPHandler(SimpleHTTPRequestHandler):
         self.backend = None
     
     def set_backend(self, backend):
+        '''Set the backend for the HTTP handler.
+        This method is used to inject the DimmerBackend instance into the HTTP handler. 
+        '''
         from LEDDimmerServer.DimmerBackend import DimmerBackend
         self.backend : DimmerBackend = backend
 
     def do_PUT(self):
+        '''Handle PUT requests to control the LED dimmer.
+        This method reads the request body, determines the action based on the URL path,    
+        and calls the appropriate method on the backend.
+        '''
         logging.debug("-- PUT")
         length = int(self.headers["Content-Length"])
         path = self.translate_path(self.path)
         data_string = self.rfile.read(length)
-        print(data_string)
+        logging.debug(data_string)
         
         if self.backend is None:
-            raise Exception("Backend not initialized!")
+            raise RuntimeError("Backend not initialized!")
 
         if "/toggle" in self.path:
             self.backend.toggle()
