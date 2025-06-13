@@ -3,16 +3,16 @@ from http.server import SimpleHTTPRequestHandler
 
 
 class HTTPHandler(SimpleHTTPRequestHandler):
-    def __init__(self, *args, **kwargs):
+    def __init__(self, backend, *args, **kwargs):
+        self.backend = backend
         super().__init__(*args, **kwargs)
-        self.backend = None
     
-    def set_backend(self, backend):
-        '''Set the backend for the HTTP handler.
-        This method is used to inject the DimmerBackend instance into the HTTP handler. 
-        '''
-        from LEDDimmerServer.DimmerBackend import DimmerBackend
-        self.backend : DimmerBackend = backend
+    #def set_backend(self, backend):
+    #    '''Set the backend for the HTTP handler.
+    #    This method is used to inject the DimmerBackend instance into the HTTP handler. 
+    #    '''
+    #    from LEDDimmerServer.DimmerBackend import DimmerBackend
+    #    self.backend : DimmerBackend = backend
 
     def do_PUT(self):
         '''Handle PUT requests to control the LED dimmer.
@@ -21,7 +21,7 @@ class HTTPHandler(SimpleHTTPRequestHandler):
         '''
         logging.debug("-- PUT")
         length = int(self.headers["Content-Length"])
-        path = self.translate_path(self.path)
+        #path = self.translate_path(self.path)
         data_string = self.rfile.read(length)
         logging.debug(data_string)
         
@@ -29,39 +29,87 @@ class HTTPHandler(SimpleHTTPRequestHandler):
             raise RuntimeError("Backend not initialized!")
 
         if "/toggle" in self.path:
-            self.backend.toggle()
-
-        if "/on" in self.path:
-            self.backend.on()
+            if self.backend.toggle():
+                self.send_response(200, "TOGGLE_OK")
+                self.send_header("Content-type", "text/html")
+                self.end_headers()
+            
+        elif "/on" in self.path:
+            if self.backend.on():
+                self.send_response(200, "ON_OK")
+                self.send_header("Content-type", "text/html")
+                self.end_headers()
   
-        if "/off" in path:
-            self.backend.off()
+        elif "/off" in self.path:
+            if self.backend.off():
+                self.send_response(200, "OFF_OK")
+                self.send_header("Content-type", "text/html")
+                self.end_headers()
+                #self.wfile.write(b"")
                         
-        if "/incr" in path:
-            self.backend.incr()
-
-        if "/decr" in path:
-            self.backend.decr()
+        elif "/incr" in self.path:
+            if self.backend.incr():
+                self.send_response(200, "INCR_OK")
+                self.send_header("Content-type", "text/html")
+                self.end_headers()
+                #self.wfile.write(b"")
+                
+        elif "/decr" in self.path:
+            if self.backend.decr():
+                self.send_response(200, "INCR_OK")
+                self.send_header("Content-type", "text/html")
+                self.end_headers()
+                #self.wfile.write("")
    
-        if "/wakeuptime" in path:
-            self.backend.wakeuptime(data_string)
+        elif "/wakeuptime" in self.path:
+            success, returntime = self.backend.wakeuptime(data_string)
+            if success:
+                self.send_response(200, 'WAKEUP_OK')
+                self.send_header("Content-type", "text/html")
+                self.end_headers()
+                self.wfile.write(returntime)
 
-        if "/sunrise" in path:
-            self.backend.sunrise()
+        elif "/sunrise" in self.path:
+            success, wakeup_time = self.backend.sunrise()
+            if success:
+                self.send_response(200, "SUNRISE_OK")
+                self.send_header("Content-type", "text/html")
+                self.end_headers()
+                self.wfile.write(f"{wakeup_time}")
+
             
-        if '/color' in path:
-            self.backend.color(data_string)
+        elif '/color' in self.path:
+            if self.backend.color(data_string):
+                self.send_response(200, "COLOR_OK")
+                self.send_header("Content-type", "text/html")
+                self.end_headers()
+                #self.wfile.write("")
 
-        if '/gradient' in path:
-            self.backend.gradient(data_string)
+        elif '/gradient' in self.path:
+            if self.backend.gradient(data_string):
+                self.send_response(200, "GRADIENT_OK")
+                self.send_header("Content-type", "text/html")
+                self.end_headers()
 
-        if '/preset' in path:
-            self.backend.preset(data_string)
+        elif '/preset' in self.path:
+            if self.backend.preset(data_string):
+                self.send_response(200, "PRESET_OK")
+                self.send_header("Content-type", "text/html")
+                self.end_headers()
 
-        if '/default' in path:
-            self.backend.default(data_string)
+        elif '/default' in self.path:
+            if self.backend.default(data_string):
+                self.send_response(200, "DEFAULT_OK")
+                self.send_header("Content-type", "text/html")
+                self.end_headers()
             
-        if '/update' in path:
+        elif '/update' in self.path:
             self.backend.update()
+        else:
+            logging.error("Unknown PUT request: %s", self.path)
+            self.send_response(404, "NOT_FOUND")
+            self.send_header("Content-type", "text/html")
+            self.end_headers()
+            self.wfile.write(b"Unknown PUT request")                
 
 

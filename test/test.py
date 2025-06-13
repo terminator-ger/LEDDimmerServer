@@ -1,10 +1,7 @@
-from functools import partial
 import unittest
-from LEDDimmerServer.LEDDimmer import HTTPHandler, parse_arguments
-from http.server import HTTPServer
+from LEDDimmerServer.LEDDimmer import LEDDimmer, parse_arguments
 import time
 import sys
-from LEDDimmerServer.__main__ import http_thread
 from LEDDimmerServer.DimmerBackend import DimmerBackend
 from threading import Thread
 
@@ -20,11 +17,14 @@ class LEDDimmerServerTest(unittest.TestCase):
             old_sys_argv = sys.argv
             sys.argv = [old_sys_argv[0]] + ["--host", "127.0.0.1", "--port", "8080"]
             config = parse_arguments()
-            server = Thread(target=http_thread, args=config)
-            server.daemon = True # Do not make us wait for you to exit
-            server.start()
+            srv = LEDDimmer(config)
+            srv_thread = Thread(target=srv.run)
+            srv_thread.daemon = True  # Do not make us wait for you to exit
+            srv_thread.start()
             time.sleep(1)
-            server.join()
+            srv.stop()
+            srv_thread.join()
+
             assert True
         except Exception:
             assert False
@@ -36,7 +36,28 @@ class LEDDimmerServerTest(unittest.TestCase):
         config["has_w"] = False
         backend = DimmerBackend(config)
         backend.toggle()
-        assert backend.GPIO_RGB_PWM.is_active == True
+        assert backend.GPIO_RGB_PWM.is_active is True
+ 
+    def test_on_rgb(self):
+        sys.argv=[]
+        config = parse_arguments()
+        config["has_rgb"] = True
+        config["has_w"] = False
+        backend = DimmerBackend(config)
+        backend.on()
+        assert backend.GPIO_RGB_PWM.is_active is True
+        
+    def test_off_rgb(self):
+        sys.argv=[]
+        config = parse_arguments()
+        config["has_rgb"] = True
+        config["has_w"] = False
+        backend = DimmerBackend(config)
+        backend.on()
+        backend.off()
+        assert backend.GPIO_RGB_PWM.is_active is False
+        
+               
  
 class ColorConversionTest(unittest.TestCase):
     _table = [

@@ -1,0 +1,13 @@
+13.06.25 15:08:01 root         WARNING  Running in virtual mode, no hardware access, only simulation
+13.06.25 15:08:01 root         INFO     hardware initialized
+13.06.25 15:08:01 root         INFO     - start httpd
+13.06.25 15:08:02 root         DEBUG    -- PUT
+13.06.25 15:08:02 root         DEBUG    b'{}'
+13.06.25 15:08:02 root         DEBUG    set w: 1.0
+13.06.25 15:08:02 root         DEBUG    set rgb: (0, 0, 0)
+13.06.25 15:08:02 root         INFO     disabling ports
+13.06.25 15:08:17 root         DEBUG    -- PUT
+13.06.25 15:08:17 root         DEBUG    b'{}'
+13.06.25 15:08:17 root         INFO     enabling ports
+13.06.25 15:08:17 root         DEBUG    set w: 0
+13.06.25 15:08:17 root         DEBUG    set rgb: (0, 0, 0)

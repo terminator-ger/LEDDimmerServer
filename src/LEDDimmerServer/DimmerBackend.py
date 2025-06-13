@@ -13,7 +13,7 @@ import pytz
 import requests
 import simplejson
 import astral
-from typing import Dict
+from typing import Dict, Tuple
 
 from LEDDimmerServer.color import get_sunrise_color, get_sunrise_intensity, modify_json
 from LEDDimmerServer.utc import UTC
@@ -45,14 +45,6 @@ class DimmerBackend:
         logging.info("hardware initialized")
         self.utc = UTC()
         self.epoch = datetime.now(tz=timezone.utc).timestamp()
-        self.http_handler = None
-
-    def set_http_handler(self, handler):
-        ''' Sets the HTTP handler for the backend
-            :param handler: The HTTP handler to set 
-        '''
-        from LEDDimmerServer.HTTPHandler import HTTPHandler
-        self.http_handler: HTTPHandler = handler
 
     def check_config(self, config: Dict) -> bool:
         ''' Check if the config is valid
@@ -64,10 +56,11 @@ class DimmerBackend:
     def disable_pwm(self):
         ''' Disables the PWM ports'''
         logging.info("disabling ports")
-        if self.config['has_w'] and self.GPIO_RGB_PWM.is_active:
-            self.GPIO_RGB_PWM.off()
-        if self.config['has_rgb'] and self.GPIO_W_PWM.is_active:
+        if self.config['has_w'] and self.GPIO_W_PWM.is_active:
             self.GPIO_W_PWM.off()
+            
+        if self.config['has_rgb'] and self.GPIO_RGB_PWM.is_active:
+            self.GPIO_RGB_PWM.off()
 
     def enable_pwm(self):
         ''' Enables the PWM ports'''
@@ -84,15 +77,9 @@ class DimmerBackend:
         '''
         return (dt-self.epoch).total_seconds() * 1000.0
 
-    def toggle(self):
+    def toggle(self) -> bool:
         ''' Toggles the light on or off'''
         logging.debug("--- TOGGLE")
-        if self.http_handler is not None:
-            self.http_handler.send_response(200, "TOGGLE_OK")
-            self.http_handler.send_header("Content-type", "text/html")
-            self.http_handler.end_headers()
-        else:
-            logging.warning("No HTTP handler set, cannot send response")
 
         if self.config['has_w'] and self.GPIO_W_PWM.is_active or self.config['has_rgb'] and self.GPIO_RGB_PWM.is_active:
             self.disable_pwm()
@@ -113,19 +100,12 @@ class DimmerBackend:
                 logging.debug("set r: %s", self.on_off_rgb_pwm)
                 self.GPIO_RGB.value = self.on_off_rgb
                 self.GPIO_RGB_PWM.value = self.on_off_rgb_pwm
+        return True
 
-    def on(self):
+    def on(self) -> bool:
         ''' Turns the light on
             If the light is already on, it does nothing.    
         '''
-        if self.http_handler is not None:
-            self.http_handler.send_response(200, "ON_OK")
-            self.http_handler.send_response(200, "OFF_OK")
-            self.http_handler.send_header("Content-type", "text/html")
-            self.http_handler.end_headers()
-        else:
-            logging.warning("No HTTP handler set, cannot send response")
-
         self.enable_pwm()
 
         if self.config["has_w"]:
@@ -135,21 +115,18 @@ class DimmerBackend:
         if self.config["has_rgb"]:
             logging.debug("set rgb: %s", self.on_off_rgb)
             self.GPIO_RGB.value = self.on_off_rgb
+            
+        return True
 
-    def off(self):
+    def off(self) -> bool:
         ''' Turns the light off
             If the light is already off, it does nothing.
         '''
-        if self.http_handler is not None:
-            self.http_handler.send_response(200, "OFF_OK")
-            self.http_handler.send_header("Content-type", "text/html")
-            self.http_handler.end_headers()
-            self.http_handler.wfile.write("")
 
         if self.config["has_w"]:
             logging.debug("set w: %s", self.on_off_w_pwm)
             self.on_off_w_pwm = 0
-            self.GPIO_W_PWM = self.on_off_w_pwm
+            self.GPIO_W_PWM.value = self.on_off_w_pwm
 
         if self.config["has_rgb"]:
             logging.debug("set rgb: %s", self.on_off_rgb)
@@ -157,21 +134,14 @@ class DimmerBackend:
             self.GPIO_RGB.value = self.on_off_rgb
 
         self.disable_pwm()
+        return True
 
-    def incr(self):
+    def incr(self) -> bool:
         ''' Increases the light intensity by 10%
             If the light is already at maximum intensity, it does nothing.  
         '''
 
         logging.debug("--- INCR")
-        if self.http_handler is not None:
-            self.http_handler.send_response(200, "INCR_OK")
-            self.http_handler.send_header("Content-type", "text/html")
-            self.http_handler.end_headers()
-            self.http_handler.wfile.write("")
-        else:
-            logging.warning("No HTTP handler set, cannot send response")
-
         if self.config['has_w']:
             if self.on_off_w_pwm == 0:
                 self.enable_pwm()
@@ -183,20 +153,14 @@ class DimmerBackend:
                 self.enable_pwm()
             self.on_off_rgb_pwm = min(self.on_off_rgb_pwm + 10, 255)
             self.GPIO_RGB_PWM.value = self.on_off_w_pwm
+            
+        return True
 
-    def decr(self):
+    def decr(self) -> bool:
         ''' Decreases the light intensity by 10%
             If the light is already at minimum intensity, it does nothing.
         '''
         logging.debug("--- DECR")
-        if self.http_handler is not None:
-            self.http_handler.send_response(200, "INCR_OK")
-            self.http_handler.send_header("Content-type", "text/html")
-            self.http_handler.end_headers()
-            self.http_handler.wfile.write("")
-        else:
-            logging.warning("No HTTP handler set, cannot send response")
-
         self.on_off_w_pwm = max(self.on_off_w_pwm - 10, 0)
         if self.config['has_w']:
             self.GPIO_W_PWM.value = self.on_off_w_pwm
@@ -207,8 +171,9 @@ class DimmerBackend:
             self.on_off_rgb_pwm = max(self.on_off_rgb - 10, 0)
             if self.on_off_rgb_pwm < 0:
                 self.disable_pwm()
+        return True
 
-    def wakeuptime(self, data_string):
+    def wakeuptime(self, data_string) -> Tuple[bool, int]:
         ''' Sets the wakeup time
             :param data_string: The data string containing the wakeup time in milliseconds since epoch  
         '''
@@ -232,16 +197,9 @@ class DimmerBackend:
         self.wakeup_task = Timer(
             t - (self.config['active_profile']['wakeup_sequence_len'] * 60), self.start_incr_light)
         self.wakeup_task.start()
+        return (True, wakeup_time)
 
-        if self.http_handler is not None:
-            self.http_handler.send_response(200, 'WAKEUP_OK')
-            self.http_handler.send_header("Content-type", "text/html")
-            self.http_handler.end_headers()
-            self.http_handler.wfile.write(returntime)
-        else:
-            logging.warning("No HTTP handler set, cannot send response")
-
-    def sunrise(self):
+    def sunrise(self) -> tuple[bool, int]:
         ''' Sets the wakeup time to the next sunrise
         '''
         logging.debug("--- Wakeup set to Sunrise ---")
@@ -267,32 +225,27 @@ class DimmerBackend:
         self.wakeup_task = Timer(t.total_seconds(
         ) - (self.config['active_profile']['wakeup_sequence_len'] * 60), self.start_incr_light)
         self.wakeup_task.start()
+        return (True, int(wakeup_time.timestamp()))
 
-        if self.http_handler is not None:
-            self.http_handler.send_response(200, 'SUNRISE_OK')
-            self.http_handler.send_header("Content-type", "text/html")
-            self.http_handler.end_headers()
-            self.http_handler.wfile.write(f"{wakeup_time}")
-        else:
-            logging.warning("No HTTP handler set, cannot send response")
-
-    def color(self, data_string):
+    def color(self, data_string) -> bool:
         '''
             name [[rgb], [rgb], ...]
         '''
         key, values = data_string.split(" ")
         values = [f"#{x}" for x in values]
         modify_json(key, values, "colors.json")
+        return True
 
-    def gradient(self, data_string):
+    def gradient(self, data_string) -> bool:
         '''
             name [[rgb], [rgb], ...]
         '''
         key, values = data_string.split(" ")
         values = [float(x) for x in values]
         modify_json(key, values, "gradient.json")
+        return True
 
-    def preset(self, data_string):
+    def preset(self, data_string) -> bool:
         '''
             preset color color_interpolation gradient gradient_interpolation wakeup_sequence_len pwm_steps
         '''
@@ -305,21 +258,23 @@ class DimmerBackend:
                  "pwm_steps": values[5]
                  }
         modify_json(key, _dict, 'presets.json')
+        return True
 
-    def default(self, data_string):
+    def default(self, data_string) -> bool:
         ''' Sets the default profile
             :param data_string: The data string containing the profile name
         '''
         _, profile = data_string.split(" ")
         modify_json('profile', profile, 'config.json')
+        return True
 
-    def update(self):
+    def update(self) -> None:
         ''' Updates the LED Dimmer Server
             This will download the latest version from the repository and restart the server.
         '''
         sys.exit(42)  # quit with code for update
 
-    def start_incr_light(self):
+    def start_incr_light(self) -> None:
         ''' Starts the wakeup sequence
             This will increase the light intensity over a period of time.
         '''

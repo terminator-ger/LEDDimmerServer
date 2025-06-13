@@ -2,25 +2,49 @@ import os
 import json
 
 import argparse
+from re import A
+import threading
+from turtle import back
 
 from LEDDimmerServer.HTTPHandler import HTTPHandler
 from LEDDimmerServer.DimmerBackend import DimmerBackend
 from LEDDimmerServer.utils import ROOT_DIR
 from functools import partial
+from http.server import HTTPServer, SimpleHTTPRequestHandler
+import logging
+from typing import Dict
 
 
 
 class LEDDimmer:
     def __init__(self, config):
-        self.backend : DimmerBackend = DimmerBackend(config)
-        self.http_handler = partial(HTTPHandler)
-        self.http_handler.set_backend(self.backend)
-        self.backend.set_http_handler(self.http_handler)
+        super().__init__()
+        self.config = config
+        backend : DimmerBackend = DimmerBackend(config)
+        self.http_handler = partial(HTTPHandler, backend)
+        self.server = HTTPServer((config['host'], int(config['port'])), RequestHandlerClass=self.http_handler)
+
+    def stop(self):
+        self.server.shutdown()
+
+    def run(self):
+        logging.info("- start httpd")
+        self.server.serve_forever(1)
+    
+    def shutdown(self):
+        logging.info("- shutdown httpd")
+        self.server.shutdown()
+        self.server.server_close()
+        logging.info("- httpd closed")
+
+
 
 def parse_arguments():
     argparser = argparse.ArgumentParser('LED SUNLIGHT TOOL')
     argparser.add_argument("--host", default="led.local")
     argparser.add_argument("--port", default=8080, type=int)
+    argparser.add_argument("--virtual", default=False, action='store_true',
+                           help="Run in virtual mode, no hardware access, only simulation")
     argparse_config = argparser.parse_args()
 
     with open(os.path.join(ROOT_DIR, "config/config.json"), 'r', encoding="utf-8") as cfg_file:
