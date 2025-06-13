@@ -33,30 +33,29 @@ class LEDDimmer:
 
 
 
-def parse_arguments():
+def parse_arguments(*args):
     argparser = argparse.ArgumentParser('LED SUNLIGHT TOOL')
     argparser.add_argument("--host", default="led.local")
     argparser.add_argument("--port", default=8080, type=int)
     argparser.add_argument("--virtual", default=False, action='store_true',
                            help="Run in virtual mode, no hardware access, only simulation")
-    argparse_config = argparser.parse_args()
+    argparse_config = argparser.parse_args(*args)
 
     with open(os.path.join(ROOT_DIR, "config/config.json"), 'r', encoding="utf-8") as cfg_file:
         json_config = json.load(cfg_file)
 
     with open(os.path.join(ROOT_DIR, "config/presets.json"), 'r', encoding="utf-8") as cfg_file:
         active_profile = json.load(cfg_file)
-        _key = "default"
-        if 'profile' in json_config and json_config['profile'] in active_profile:
-            _key = json_config['sunrise_profile']
-        active_profile[_key]
+        _key = json_config['sunrise_profile']
+        #if 'profile' in json_config and json_config['profile'] in active_profile:
+        #    _key = json_config['sunrise_profile']
+        argparse_config.__dict__['active_profile'] = active_profile[_key]
 
     # fill in config from json if they are not give by argparse
     for k_j, v_j in json_config.items():
         if k_j not in argparse_config.__dict__:
             argparse_config.__dict__[k_j] = v_j
 
-    argparse_config.__dict__['sunrise_profile'] = active_profile
     return argparse_config.__dict__
 
 

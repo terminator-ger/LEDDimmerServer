@@ -7,12 +7,6 @@ class HTTPHandler(SimpleHTTPRequestHandler):
         self.backend = backend
         super().__init__(*args, **kwargs)
     
-    #def set_backend(self, backend):
-    #    '''Set the backend for the HTTP handler.
-    #    This method is used to inject the DimmerBackend instance into the HTTP handler. 
-    #    '''
-    #    from LEDDimmerServer.DimmerBackend import DimmerBackend
-    #    self.backend : DimmerBackend = backend
 
     def do_PUT(self):
         '''Handle PUT requests to control the LED dimmer.

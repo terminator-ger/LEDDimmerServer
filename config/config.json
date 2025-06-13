@@ -8,5 +8,8 @@
     "GPIO_RGB_PWM": 18,
     "GPIO_W_PWM": 19,
     "host": "led_light.local",
-    "port": 8080
+    "port": 8080,
+    "latitude": 49.460983,
+    "longitude": 11.061859,
+    "time_zone": "Europe/Berlin"
 }

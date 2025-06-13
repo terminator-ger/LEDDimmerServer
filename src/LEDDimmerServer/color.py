@@ -1,19 +1,24 @@
+from typing import Dict
 import json
 
 def load_json(f, name="sunrise_01_rgb"):
-    colors = json.load(f)
-    if name not in colors:
-        raise KeyError(f"{name} cannot be found")
-    return colors
+    with open(f, "r", encoding='utf-8') as fp:
+        colors = json.load(fp)
+        if name not in colors:
+            raise KeyError(f"{name} cannot be found")
+    return colors[name]
 
-def safe_json(f, colors):
-    with open(f, "w") as fp:
-        json.dump(colors, fp, sort_keys=True, indent=4)
+def safe_json(f, dict: Dict):
+    with open(f, "w", encoding='utf-8') as fp:
+        json.dump(dict, fp, sort_keys=True, indent=4)
 
-def modify_json(key, value, json_name):
-    _dict = json.load(json_name)
+def modify_json(key: str, value, json_name: str):
+    with open(json_name, "r", encoding='utf-8') as json_file:
+        _dict = json.load(json_file)
+    if _dict is None:
+        raise ValueError(f"Cannot load json file {json_name}")
     _dict[key] = value
-    safe_json(_dict)
+    safe_json(json_name, _dict)
 
 
 def hex2np(color_hex_code):
@@ -55,7 +60,7 @@ def get_sunrise_color(t_cur, interpolation='linear', scale="sunrise_01_rgb") -> 
 
 
 def get_sunrise_intensity(t_cur, interpolation='linear', gradient="exp") -> float:
-    grad = load_json("config.gradient.json", gradient)
+    grad = load_json("config/gradient.json", gradient)
     time_ref = [0, .25, .5, .75, 1]
 
     if interpolation == 'linear':
@@ -69,46 +74,6 @@ def get_sunrise_intensity(t_cur, interpolation='linear', gradient="exp") -> floa
 """
     Based on: http://www.tannerhelland.com/4435/convert-temperature-rgb-algorithm-code/
     Comments resceived: https://gist.github.com/petrklus/b1f427accdf7438606a6
-    Original pseudo code:
-    
-    Set Temperature = Temperature \ 100
-    
-    Calculate Red:
-    If Temperature <= 66 Then
-        Red = 255
-    Else
-        Red = Temperature - 60
-        Red = 329.698727446 * (Red ^ -0.1332047592)
-        If Red < 0 Then Red = 0
-        If Red > 255 Then Red = 255
-    End If
-    
-    Calculate Green:
-    If Temperature <= 66 Then
-        Green = Temperature
-        Green = 99.4708025861 * Ln(Green) - 161.1195681661
-        If Green < 0 Then Green = 0
-        If Green > 255 Then Green = 255
-    Else
-        Green = Temperature - 60
-        Green = 288.1221695283 * (Green ^ -0.0755148492)
-        If Green < 0 Then Green = 0
-        If Green > 255 Then Green = 255
-    End If
-    
-    Calculate Blue:
-    If Temperature >= 66 Then
-        Blue = 255
-    Else
-        If Temperature <= 19 Then
-            Blue = 0
-        Else
-            Blue = Temperature - 10
-            Blue = 138.5177312231 * Ln(Blue) - 305.0447927307
-            If Blue < 0 Then Blue = 0
-            If Blue > 255 Then Blue = 255
-        End If
-    End If
 """
 
 import math
