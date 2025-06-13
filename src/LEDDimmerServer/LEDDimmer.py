@@ -1,19 +1,13 @@
-import os
-import json
-
 import argparse
-from re import A
-import threading
-from turtle import back
-
-from LEDDimmerServer.HTTPHandler import HTTPHandler
-from LEDDimmerServer.DimmerBackend import DimmerBackend
-from LEDDimmerServer.utils import ROOT_DIR
-from functools import partial
-from http.server import HTTPServer, SimpleHTTPRequestHandler
+import json
 import logging
-from typing import Dict
+import os
+from functools import partial
+from http.server import HTTPServer
 
+from LEDDimmerServer.DimmerBackend import DimmerBackend
+from LEDDimmerServer.HTTPHandler import HTTPHandler
+from LEDDimmerServer.utils import ROOT_DIR
 
 
 class LEDDimmer:

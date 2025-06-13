@@ -1,21 +1,18 @@
-import simplejson
-import time
-import sys
-import requests
 import json
 import logging
+import sys
 import time
 from datetime import datetime, timedelta, timezone
 from threading import Lock, Timer
-from http.server import SimpleHTTPRequestHandler
-from gpiozero import PWMLED, RGBLED
+from typing import Dict, Tuple
+
+import astral
 import pytz
 import requests
 import simplejson
-import astral
-from typing import Dict, Tuple
+from gpiozero import PWMLED, RGBLED
 
-from LEDDimmerServer.color import get_sunrise_color, get_sunrise_intensity, modify_json
+from LEDDimmerServer.color import get_sunrise_intensity, modify_json
 from LEDDimmerServer.utc import UTC
 
 
