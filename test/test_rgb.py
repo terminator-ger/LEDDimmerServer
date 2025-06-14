@@ -158,8 +158,7 @@ class RGBTest(unittest.TestCase):
         current_epoch = int(time.time())
         wakeup_time = current_epoch + timedelta + 5  # More than wakeup period
         backend = DimmerBackend(config)
-        user_dict = {'time': wakeup_time}
-        backend.wakeuptime(json.dumps(user_dict, indent=2).encode('utf-8'))
+        backend.wakeuptime(wakeup_time)
         backend.incr()
         self.assertTrue(backend.GPIO_RGB_PWM.is_active)
         self.assertEqual(backend.GPIO_RGB_PWM.value, 0.1)  # Assuming incr sets a default value of 0.1
@@ -175,8 +174,7 @@ class RGBTest(unittest.TestCase):
         current_epoch = (time.time())
         wakeup_time = current_epoch + timedelta + 5  # More than wakeup period
         backend = DimmerBackend(config)
-        user_dict = {'time': wakeup_time}
-        backend.wakeuptime(json.dumps(user_dict, indent=2).encode('utf-8'))
+        backend.wakeuptime(wakeup_time)
  
         backend.incr()
         self.assertTrue(backend.GPIO_RGB_PWM.is_active)
@@ -194,10 +192,8 @@ class RGBTest(unittest.TestCase):
         wakeup_time_old = current_epoch + timedelta + 6  # More than wakeup period
         wakeup_time_new = current_epoch + timedelta + 5  # More than wakeup period
         backend = DimmerBackend(config)
-        user_dict = {'time': wakeup_time_old}
-        backend.wakeuptime(json.dumps(user_dict, indent=2).encode('utf-8'))
-        user_dict = {'time': wakeup_time_new}
-        backend.wakeuptime(json.dumps(user_dict, indent=2).encode('utf-8'))
+        backend.wakeuptime(wakeup_time_old)
+        backend.wakeuptime(wakeup_time_new)
  
         self.assertFalse(backend.GPIO_RGB_PWM.is_active)
         self.assertEqual(backend.wakeup_task.interval, 5)  # Ensure the wakeup task has finished
@@ -213,11 +209,9 @@ class RGBTest(unittest.TestCase):
         wakeup_time_old = current_epoch + timedelta + 2  # More than wakeup period
         wakeup_time_new = current_epoch + timedelta + 10  # More than wakeup period
         backend = DimmerBackend(config)
-        user_dict = {'time': wakeup_time_old}
-        backend.wakeuptime(json.dumps(user_dict, indent=2).encode('utf-8'))
+        backend.wakeuptime(wakeup_time_old)
         time.sleep(4)
-        user_dict = {'time': wakeup_time_new}
-        backend.wakeuptime(json.dumps(user_dict, indent=2).encode('utf-8'))
+        backend.wakeuptime(wakeup_time_new)
  
         self.assertFalse(backend.GPIO_RGB_PWM.is_active)
         self.assertEqual(backend.wakeup_task.interval, 6)  # Ensure the wakeup task has finished

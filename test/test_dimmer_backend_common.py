@@ -21,6 +21,6 @@ class DimmerBackendCommonTest(unittest.TestCase):
         config["has_rgb"] = True
         config["has_w"] = False
         backend = DimmerBackend(config)
-        backend.color("high_sky: #0000FF #00FF00 #FF0000 #FFFFFF #000000")
+        backend.color({"high_sky": ["#0000FF", "#00FF00", "#FF0000", "#FFFFFF", "#000000"]})
         color = load_json("config/colors.json", "high_sky")
         self.assertEqual(color, ["#0000FF", "#00FF00", "#FF0000", "#FFFFFF", "#000000"])

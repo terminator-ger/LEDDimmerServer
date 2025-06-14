@@ -138,14 +138,15 @@ class DimmerBackend:
 
         return True
 
-    def wakeuptime(self, data_string: Dict) -> Tuple[bool, int]:
+    def wakeuptime(self, wakeup_time: int) -> Tuple[bool, int]:
         ''' Sets the wakeup time
             :param data_string: The data string containing the wakeup time in milliseconds since epoch  
         '''
         logging.debug("--- New wakeup time: ")
-        # parse json
-        data = simplejson.loads(data_string)
-        wakeup_time = int(data['time'])
+        
+        if not isinstance(wakeup_time, int):
+            raise TypeError("wakeup_time must be an integer")
+
         now = int(time.time())
         t = int((wakeup_time-now))
 
@@ -200,22 +201,22 @@ class DimmerBackend:
         self.wakeup_task.start()
         return (True, int(wakeup_time.timestamp()))
 
-    def color(self, data_string) -> bool:
+    def color(self, dict: Dict) -> bool:
         '''
             name [[rgb], [rgb], ...]
         '''
-        key, values = data_string.split(": ")
-        values = [x for x in values.split(" ")]
-        modify_json(key, values, "config/colors.json")
+        for key, values in dict.items():
+            modify_json(key, values, "config/colors.json")
         return True
 
-    def gradient(self, data_string) -> bool:
+    def gradient(self, data: Dict) -> bool:
         '''
             name [[rgb], [rgb], ...]
         '''
-        key, values = data_string.split(" ")
-        values = [float(x) for x in values]
-        modify_json(key, values, "config/gradient.json")
+        #key, values = data_string.split(" ")
+        #values = [float(x) for x in values]
+        for key, values in data.items():
+            modify_json(key, values, "config/gradient.json")
         return True
 
     def preset(self, data_string) -> bool:

@@ -14,8 +14,8 @@ class LEDDimmer:
     def __init__(self, config):
         super().__init__()
         self.config = config
-        backend : DimmerBackend = DimmerBackend(config)
-        self.http_handler = partial(HTTPHandler, backend)
+        self.backend : DimmerBackend = DimmerBackend(config)
+        self.http_handler = partial(HTTPHandler, self.backend)
         self.server = HTTPServer((config['host'], int(config['port'])), RequestHandlerClass=self.http_handler)
 
     def stop(self):
