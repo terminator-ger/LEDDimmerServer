@@ -192,9 +192,10 @@ class DimmerBackend:
         t = wakeup_time - now
 
         
-        if self.wakeup_task is not None and self.wakeup_task.is_running():
+        if self.wakeup_task is not None and self.wakeup_task.is_alive():
             logging.debug("Wakeuptask was set - cancel it")
             self.wakeup_task.cancel()
+            self.wakeup_task.join()
             return (True, 0)
        
         if self.is_in_wakeup_sequence.locked():

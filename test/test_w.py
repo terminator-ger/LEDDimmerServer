@@ -231,11 +231,27 @@ class WTest(unittest.TestCase):
         config["has_w"] = True
         backend = DimmerBackend(config)
         backend.sunrise()
+        self.assertTrue(backend.wakeup_task.is_alive())
         backend.sunrise()
- 
+        self.assertFalse(backend.wakeup_task.is_alive())
         self.assertFalse(backend.GPIO_W_PWM.is_active)
         backend.wakeup_task.cancel()        
-         
+ 
+    def test_sunrise_sunrise_sunrise(self):
+        sys.argv=[]
+        config = parse_arguments()
+        config["has_rgb"] = False
+        config["has_w"] = True
+        backend = DimmerBackend(config)
+        backend.sunrise()
+        self.assertTrue(backend.wakeup_task.is_alive())
+        backend.sunrise()
+        self.assertFalse(backend.wakeup_task.is_alive())
+        self.assertFalse(backend.GPIO_W_PWM.is_active)
+        backend.sunrise()
+        self.assertTrue(backend.wakeup_task.is_alive())
+        backend.wakeup_task.cancel()        
+             
 class ColorConversionTest(unittest.TestCase):
     _table = [
         #["#FFFFFF",  	1	 ,   1	 ,   1		    ,None   ,0	    ,1    ],
