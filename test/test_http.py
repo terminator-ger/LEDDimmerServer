@@ -71,6 +71,19 @@ class HttpTest(unittest.TestCase):
         self.assertEqual(r.text, f"WAKEUP {now}")
         self.assertFalse(self.srv.backend.GPIO_W_PWM.is_active)  # Simulate the LED being on
 
+    def test_http_wakeup_cancel(self):
+        now = int(time.time()) + 60 * 30 + 1
+        r = requests.put("http://127.0.0.1:8080/wakeuptime", data = json.dumps({"time": now}))
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r.text, f"WAKEUP {now}")
+        self.assertFalse(self.srv.backend.GPIO_W_PWM.is_active)  # Simulate the LED being on
+        self.assertTrue(self.srv.backend.wakeup_task.is_running())
+        r = requests.put("http://127.0.0.1:8080/wakeuptime", data = json.dumps({"time": 0}))
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r.text, f"WAKEUP {0}")
+        self.assertFalse(self.srv.backend.wakeup_task.is_running())
+ 
+
     def test_http_wakeup_malformed_json(self):
         now = int(time.time()) + 60 * 30 + 1
         r = requests.put("http://127.0.0.1:8080/wakeuptime", data = json.dumps({"time_": now}))

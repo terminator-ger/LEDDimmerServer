@@ -141,6 +141,8 @@ class DimmerBackend:
     def wakeuptime(self, wakeup_time: int) -> Tuple[bool, int]:
         ''' Sets the wakeup time
             :param data_string: The data string containing the wakeup time in milliseconds since epoch  
+            when the wakeup_time is 0 it will disable the wakeup sequence
+            :return: A tuple containing a boolean indicating success and the wakeup time in seconds since epoch
         '''
         logging.debug("--- New wakeup time: ")
         
@@ -163,6 +165,10 @@ class DimmerBackend:
             # disable wakeup if there is one active...
             self.is_in_wakeup_sequence.release_lock()
             self.off()
+        
+        if wakeup_time == 0:
+            logging.info("Wakeup sequence disabled")
+            return (True, 0)
             
         self.wakeup_task = Timer(
             t - (self.config['active_profile']['wakeup_sequence_len'] * 60), self.start_incr_light)
