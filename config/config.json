@@ -11,5 +11,6 @@
     "port": 8080,
     "latitude": 49.460983,
     "longitude": 11.061859,
-    "time_zone": "Europe/Berlin"
+    "time_zone": "Europe/Berlin",
+    "use_ssl": false
 }

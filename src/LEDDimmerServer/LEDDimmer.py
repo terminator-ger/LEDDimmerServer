@@ -19,7 +19,9 @@ class LEDDimmer:
         self.backend : DimmerBackend = DimmerBackend(config)
         self.http_handler = partial(HTTPHandler, self.backend)
         self.httpd = HTTPServer((config['host'], int(config['port'])), RequestHandlerClass=self.http_handler)
-        self._ssl_init()
+        if config['use_ssl']:
+            logging.info("- SSL enabled")
+            self._ssl_init()
     
    
     def _ssl_init(self):
