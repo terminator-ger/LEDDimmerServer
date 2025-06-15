@@ -25,6 +25,7 @@ class LEDDimmer:
     def _ssl_init(self):
         """Initialize SSL for the HTTP server."""   
         logging.info("- init ssl")
+        os.makedirs(os.path.join(Path.home(), ".ssh"), exist_ok=True)
         ssl_key_file = os.environ.get('LED_SSL_PRIVATE_KEY')
         if not ssl_key_file:
             logging.warning("SSL private key file not set in environment variable LED_SSL_PRIVATE_KEY ")
