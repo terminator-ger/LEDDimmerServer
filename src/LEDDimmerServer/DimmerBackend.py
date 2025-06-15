@@ -196,6 +196,7 @@ class DimmerBackend:
         
         if self.wakeup_task is not None:
             self.wakeup_task.cancel()
+            return (True, 0)
        
         if self.is_in_wakeup_sequence.locked():
             # disable wakeup if there is one active...

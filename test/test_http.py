@@ -97,6 +97,17 @@ class HttpTest(unittest.TestCase):
         r = requests.put("http://127.0.0.1:8080/sunrise", data = {})
         self.assertEqual(r.status_code, 200)
         self.assertIn("SUNRISE", r.text)
+        
+    def test_http_sunrise_sunrise(self):
+        r = requests.put("http://127.0.0.1:8080/sunrise", data = {})
+        self.assertEqual(r.status_code, 200)
+        self.assertIn("SUNRISE", r.text)
+        self.assertTrue(self.srv.backend.wakeup_task.is_running())
+        r = requests.put("http://127.0.0.1:8080/sunrise", data = {})
+        self.assertEqual(r.status_code, 200)
+        self.assertIn("SUNRISE", r.text)
+        self.assertFalse(self.srv.backend.wakeup_task.is_running())
+
 
     def test_http_color(self):
         r = requests.put("http://127.0.0.1:8080/color", data = json.dumps({"high_sky": "#0000FF #00FF00 #FF0000 #FFFFFF #000000"}))
