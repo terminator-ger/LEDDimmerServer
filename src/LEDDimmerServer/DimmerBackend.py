@@ -190,11 +190,10 @@ class DimmerBackend:
         now = datetime.now(self.utc)
 
         t = wakeup_time - now
-        logging.info("Wakeup at")
-        logging.info("%s", wakeup_time)
-        logging.debug("killing old wakeups")
+
         
-        if self.wakeup_task is not None:
+        if self.wakeup_task is not None and self.wakeup_task.is_running():
+            logging.debug("Wakeuptask was set - cancel it")
             self.wakeup_task.cancel()
             return (True, 0)
        
@@ -202,7 +201,9 @@ class DimmerBackend:
             # disable wakeup if there is one active...
             self.is_in_wakeup_sequence.release_lock()
             self.off() 
-            
+
+        logging.info("Wakeup at")
+        logging.info("%s", wakeup_time)
         self.wakeup_task = Timer(t.total_seconds(
         ) - (self.config['active_profile']['wakeup_sequence_len'] * 60), self.start_incr_light)
         self.wakeup_task.start()
