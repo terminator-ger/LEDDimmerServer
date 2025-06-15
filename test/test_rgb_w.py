@@ -136,7 +136,7 @@ class RGBWTest(unittest.TestCase):
         config["has_rgb"] = True
         config["has_w"] = True
         timedelta = config['active_profile']['wakeup_sequence_len'] * 60
-        current_epoch = (time.time())
+        current_epoch = int(time.time())
         wakeup_time = current_epoch + timedelta + 5  # More than wakeup period
         backend = DimmerBackend(config)
         backend.wakeuptime(wakeup_time)
@@ -155,7 +155,7 @@ class RGBWTest(unittest.TestCase):
         config["has_rgb"] = True
         config["has_w"] = True
         timedelta = config['active_profile']['wakeup_sequence_len'] * 60
-        current_epoch = (time.time())
+        current_epoch = int(time.time())
         wakeup_time_old = current_epoch + timedelta + 6  # More than wakeup period
         wakeup_time_new = current_epoch + timedelta + 5  # More than wakeup period
         backend = DimmerBackend(config)
@@ -174,7 +174,7 @@ class RGBWTest(unittest.TestCase):
         config["has_rgb"] = True
         config["has_w"] = True
         timedelta = config['active_profile']['wakeup_sequence_len'] * 60
-        current_epoch = (time.time())
+        current_epoch = int(time.time())
         wakeup_time_old = current_epoch + timedelta + 2  # More than wakeup period
         wakeup_time_new = current_epoch + timedelta + 10  # More than wakeup period
         backend = DimmerBackend(config)

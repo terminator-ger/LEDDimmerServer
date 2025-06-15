@@ -7,8 +7,10 @@ from http.server import HTTPServer
 
 from LEDDimmerServer.DimmerBackend import DimmerBackend
 from LEDDimmerServer.HTTPHandler import HTTPHandler
-from LEDDimmerServer.utils import ROOT_DIR
-
+from LEDDimmerServer.utils import ROOT_DIR, get_ssl_context
+import ssl
+import subprocess
+from pathlib import Path
 
 class LEDDimmer:
     def __init__(self, config):
@@ -16,19 +18,54 @@ class LEDDimmer:
         self.config = config
         self.backend : DimmerBackend = DimmerBackend(config)
         self.http_handler = partial(HTTPHandler, self.backend)
-        self.server = HTTPServer((config['host'], int(config['port'])), RequestHandlerClass=self.http_handler)
-
+        self.httpd = HTTPServer((config['host'], int(config['port'])), RequestHandlerClass=self.http_handler)
+        self._ssl_init()
+    
+   
+    def _ssl_init(self):
+        """Initialize SSL for the HTTP server."""   
+        logging.info("- init ssl")
+        ssl_key_file = os.environ.get('LED_SSL_PRIVATE_KEY')
+        if not ssl_key_file:
+            logging.warning("SSL private key file not set in environment variable LED_SSL_PRIVATE_KEY ")
+            ssl_key_file = os.path.join(Path.home(), ".ssh/led_key.pem")
+        ssl_cert_file = ssl_key_file.replace("led_key.pem", "led_cert.pem") 
+        
+        if not os.path.exists(ssl_key_file):
+            logging.error("SSL private key file %s does not exist - generating a new one.", ssl_key_file)
+            subprocess.run(
+                ["openssl",
+                 "req",
+                 "-x509",
+                 "-newkey",
+                 "rsa:4096",
+                 "-sha256",
+                 "-days",
+                 "36500",
+                 "-nodes",
+                 "-keyout",
+                 ssl_key_file,
+                 "-out", 
+                 ssl_cert_file,
+                 "-subj",
+                 "/CN=led.local",
+                "-addext",
+                "subjectAltName=DNS:led.local,DNS:*.led.local"
+            ])
+        context = get_ssl_context(ssl_cert_file, ssl_key_file)
+        self.httpd.socket = context.wrap_socket(self.httpd.socket, server_side=True)
+    
     def stop(self):
-        self.server.shutdown()
+        self.httpd.shutdown()
 
     def run(self):
         logging.info("- start httpd")
-        self.server.serve_forever(1)
+        self.httpd.serve_forever(1)
     
     def shutdown(self):
         logging.info("- shutdown httpd")
-        self.server.shutdown()
-        self.server.server_close()
+        self.httpd.shutdown()
+        self.httpd.server_close()
         logging.info("- httpd closed")
 
 

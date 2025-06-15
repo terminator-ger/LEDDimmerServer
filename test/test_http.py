@@ -64,7 +64,6 @@ class HttpTest(unittest.TestCase):
         self.assertEqual(r.text, "DECR")
         self.assertFalse(self.srv.backend.GPIO_W_PWM.is_active)  # Simulate the LED being on
 
-
     def test_http_wakeup(self):
         now = int(time.time()) + 60 * 30 + 1
         r = requests.put("http://127.0.0.1:8080/wakeuptime", data = json.dumps({"time": now}))
