@@ -78,10 +78,14 @@ class HTTPHandler(SimpleHTTPRequestHandler):
         elif "/incr" in self.path:
             if self.backend.incr():
                 self.response(200, "INCR")
+            else:
+                self.response(405, "INCR")
                 
         elif "/decr" in self.path:
             if self.backend.decr():
                 self.response(200, "DECR")
+            else:
+                self.response(405, "DECR")
    
         elif "/wakeuptime" in self.path:
             if data_string is None or len(data_string) == 0:

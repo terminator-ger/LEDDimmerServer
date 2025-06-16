@@ -84,8 +84,8 @@ class RGBTest(unittest.TestCase):
         backend = DimmerBackend(config)
         backend.off()
         backend.incr()
-        self.assertTrue(backend.GPIO_RGB_PWM.is_active)
-        self.assertEqual(backend.GPIO_RGB_PWM.value, 0.1)  # Assuming incr sets a default value of 0.1
+        self.assertFalse(backend.GPIO_RGB_PWM.is_active)
+        self.assertEqual(backend.GPIO_RGB_PWM.value, 0.0)  # Assuming incr sets a default value of 0.1
         
     def test_toggle_incr(self):
         '''
@@ -160,8 +160,8 @@ class RGBTest(unittest.TestCase):
         backend = DimmerBackend(config)
         backend.wakeuptime(wakeup_time)
         backend.incr()
-        self.assertTrue(backend.GPIO_RGB_PWM.is_active)
-        self.assertEqual(backend.GPIO_RGB_PWM.value, 0.1)  # Assuming incr sets a default value of 0.1
+        self.assertFalse(backend.GPIO_RGB_PWM.is_active)
+        self.assertEqual(backend.GPIO_RGB_PWM.value, 0.0)  # Assuming incr sets a default value of 0.1
         self.assertFalse(backend.wakeup_task.finished.is_set())
         backend.wakeup_task.cancel()
          
@@ -177,8 +177,8 @@ class RGBTest(unittest.TestCase):
         backend.wakeuptime(wakeup_time)
  
         backend.incr()
-        self.assertTrue(backend.GPIO_RGB_PWM.is_active)
-        self.assertEqual(backend.GPIO_RGB_PWM.value, 0.1)  # Assuming incr sets a default value of 0.1
+        self.assertFalse(backend.GPIO_RGB_PWM.is_active)
+        self.assertEqual(backend.GPIO_RGB_PWM.value, 0.0)  # Assuming incr sets a default value of 0.1
         self.assertFalse(backend.wakeup_task.finished.is_set()) # Ensure the wakeup task has finished
         backend.wakeup_task.cancel()
  

@@ -60,7 +60,7 @@ class HttpTest(unittest.TestCase):
 
     def test_http_decr(self):
         r = requests.put("http://127.0.0.1:8080/decr", data = {})
-        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r.status_code, 405)    
         self.assertEqual(r.text, "DECR")
         self.assertFalse(self.srv.backend.GPIO_W_PWM.is_active)  # Simulate the LED being on
 
@@ -77,11 +77,11 @@ class HttpTest(unittest.TestCase):
         self.assertEqual(r.status_code, 200)
         self.assertEqual(r.text, f"WAKEUP {now}")
         self.assertFalse(self.srv.backend.GPIO_W_PWM.is_active)  # Simulate the LED being on
-        self.assertTrue(self.srv.backend.wakeup_task.is_running())
+        self.assertTrue(self.srv.backend.wakeup_task.is_alive())
         r = requests.put("http://127.0.0.1:8080/wakeuptime", data = json.dumps({"time": 0}))
         self.assertEqual(r.status_code, 200)
         self.assertEqual(r.text, f"WAKEUP {0}")
-        self.assertFalse(self.srv.backend.wakeup_task.is_running())
+        self.assertFalse(self.srv.backend.wakeup_task.is_alive())
  
 
     def test_http_wakeup_malformed_json(self):
@@ -102,11 +102,11 @@ class HttpTest(unittest.TestCase):
         r = requests.put("http://127.0.0.1:8080/sunrise", data = {})
         self.assertEqual(r.status_code, 200)
         self.assertIn("SUNRISE", r.text)
-        self.assertTrue(self.srv.backend.wakeup_task.is_running())
+        self.assertTrue(self.srv.backend.wakeup_task.is_alive())
         r = requests.put("http://127.0.0.1:8080/sunrise", data = {})
         self.assertEqual(r.status_code, 200)
         self.assertIn("SUNRISE", r.text)
-        self.assertFalse(self.srv.backend.wakeup_task.is_running())
+        self.assertFalse(self.srv.backend.wakeup_task.is_alive())
 
 
     def test_http_color(self):
