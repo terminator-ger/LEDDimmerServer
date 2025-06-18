@@ -42,6 +42,42 @@ class DimmerBackend:
         logging.info("hardware initialized")
         self.utc = UTC()
         self.epoch = datetime.now(tz=timezone.utc).timestamp()
+    
+    def get_status(self) -> Dict:
+        ''' Returns the status of the LED Dimmer Server
+            :return: A dictionary containing the status of the LED Dimmer Server
+        '''
+        status = {
+            'has_w': self.config['has_w'],
+            'has_rgb': self.config['has_rgb'],
+            'rgb': self.on_off_rgb,
+            'w_pwm': self.on_off_w_pwm,
+            'rgb_pwm': self.on_off_rgb_pwm,
+            'is_in_wakeup_sequence': self.is_in_wakeup_sequence.locked(),
+            'wakeup_task_alive': self.wakeup_task.is_alive() if self.wakeup_task else False,
+            "wakeup_time": self.wakeuptime(0)[1] if self.wakeup_task else 0
+        }
+        return status
+    
+    def get_config(self) -> Dict:
+        ''' Returns the configuration of the LED Dimmer Server
+            :return: A dictionary containing the configuration of the LED Dimmer Server
+        '''
+        config = {
+            "active_profile": self.config['active_profile'],
+            "latitude": self.config['latitude'],    
+            "longitude": self.config['longitude'],
+            "time_zone": self.config['time_zone'],  
+            "colors": self.config['colors'],
+            "gradient": self.config['gradient'],    
+            "presets": self.config['presets'],
+            "gpio_w_pwm": self.config['GPIO_W_PWM'],
+            "gpio_rgb_pwm": self.config['GPIO_RGB_PWM'],
+            "gpio_r": self.config['GPIO_R'],
+            "gpio_g": self.config['GPIO_G'],
+            "gpio_b": self.config['GPIO_B'],
+        }
+        return config
 
     def check_config(self, config: Dict) -> bool:
         ''' Check if the config is valid
@@ -60,10 +96,10 @@ class DimmerBackend:
             or (self.config['has_rgb'] and self.GPIO_RGB_PWM.is_active):
 
             self.off()
+            return False
         else:
             self.on()
-
-        return True
+            return True
 
     def on(self) -> bool:
         ''' Turns the light on

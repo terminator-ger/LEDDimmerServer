@@ -63,23 +63,31 @@ class HTTPHandler(SimpleHTTPRequestHandler):
         if self.backend is None:
             raise RuntimeError("Backend not initialized!")
 
-        if "/toggle" in self.path:
+        if "/status" in self.path:
+            self.response(200, "STATUS " + self.backend.status())
+        
+        elif "/config" in self.path:
+            self.response(200, "CONFIG " + self.backend.config())
+            
+        elif "/toggle" in self.path:
             if self.backend.toggle():
-                self.response(200, "TOGGLE")
+                self.response(200, "TOGGLE ON")
+            else:
+                self.response(200, "TOGGLE OFF")
             
         elif "/on" in self.path:
             if self.backend.on():
-                self.response(200, "ON")
+                self.response(200, "ON" )
   
         elif "/off" in self.path:
             if self.backend.off():
-                self.response(200, "OFF")
+                self.response(200, "OFF" )
                         
         elif "/incr" in self.path:
             if self.backend.incr():
-                self.response(200, "INCR")
+                self.response(200, "INCR" )
             else:
-                self.response(405, "INCR")
+                self.response(405, "INCR" )
                 
         elif "/decr" in self.path:
             if self.backend.decr():
