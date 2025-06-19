@@ -1,13 +1,16 @@
 #!/bin/bash
 
 retcode=0
-while :
-do
-    if [$retcode -eq 42]; then
-        #update
-        /usr/bin/yes | /bin/python3 -m pip -U LEDDimmerServer
+
+while true; do  
+    source /home/led/LEDDimmerServer/venv/bin/activate
+
+    if [ "$retcode" -eq 42 ]; then
+        # update
+        python3 -m pip install -U LEDDimmerServer
     fi
-    #exec service
-    LEDDimmerServer
+
+    # exec service
+    python3 -m LEDDimmerServer
     retcode=$?
 done
