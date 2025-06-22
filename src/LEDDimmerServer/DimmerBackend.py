@@ -13,7 +13,7 @@ import requests
 import simplejson
 from gpiozero import PWMLED, RGBLED
 
-from LEDDimmerServer.color import get_sunrise_intensity, modify_json
+from LEDDimmerServer.color import get_sunrise_intensity, modify_json, SunriseProgress
 from LEDDimmerServer.utc import UTC
 
 
@@ -23,6 +23,8 @@ class DimmerBackend:
         self.is_in_wakeup_sequence: Lock = Lock()
         self.check_config(config)
         self.config = config
+        self.progress = SunriseProgress()
+        
 
         # PIN CONFIGURATION
         # @see http://abyz.me.uk/rpi/pigpio/index.html#Type_3
@@ -284,6 +286,7 @@ class DimmerBackend:
         #values = [float(x) for x in values]
         for key, values in data.items():
             modify_json(key, values, "config/gradient.json")
+        self.progress.reload()
         return True
 
     def preset(self, data_string) -> bool:
@@ -326,7 +329,7 @@ class DimmerBackend:
 
         for progress in range(0, self.config['active_profile']['pwm_steps']):
             p = progress / self.config['active_profile']['pwm_steps']
-            lum = get_sunrise_intensity(
+            lum = self.progress.get_sunrise_intensity(
                 p, self.config['active_profile']['gradient_interpolation'], self.config['active_profile']['gradient'])
             logging.info("setting light to %s", str(lum))
             if self.config['has_w']:

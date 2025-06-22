@@ -5,6 +5,11 @@ import os
 
 from LEDDimmerServer.utils import ROOT_DIR
 
+def load_json_dict(f) -> Dict:
+    logging.info(f"Loading json file {f}")
+    with open(f, "r", encoding='utf-8') as fp:
+        return json.load(fp)
+ 
 def load_json(f, name="sunrise_01_rgb"):
     logging.info(f"Loading json file {f} for {name}")
     with open(f, "r", encoding='utf-8') as fp:
@@ -45,35 +50,50 @@ def interp(x0, xs, ys):
         px=x
         py=y
 
-def get_sunrise_color(t_cur, interpolation='linear', scale="sunrise_01_rgb") -> tuple[float, float, float]:
-    """
-        t_cur is relative percentual progress
-    """
-    color_pallet = load_json(os.path.join(ROOT_DIR, "config/color.json"), scale)
-    colors = [hex2np(x) for x in color_pallet]
-    time_ref = [0, .25, .5, .75, 1]
-    if interpolation == 'linear':
-        r,g,b = [interp(t_cur, time_ref, color) for color in colors]
-    else:
-        # fallback linear
-        r, g, b = [interp(t_cur, time_ref, color) for color in colors]
-    
-    r /= 255
-    g /= 255
-    b /= 255
-    return r,g,b
-
-
-def get_sunrise_intensity(t_cur, interpolation='linear', gradient="exp") -> float:
-    grad = load_json(os.path.join(ROOT_DIR, "config/gradient.json"), gradient)
-    time_ref = [0, .25, .5, .75, 1]
-
-    if interpolation == 'linear':
-        lum = interp(t_cur, time_ref, grad)
-    else:
-        lum = interp(t_cur, time_ref, grad)
+class SunriseProgress:
+    def __init__(self):
+        self.reload()
         
-    return lum
+    def reload(self):
+        """
+            Reload the color and gradient json files
+        """
+        self.color_pallet = load_json_dict(os.path.join(ROOT_DIR, "config/color.json"))
+        self.grad = load_json_dict(os.path.join(ROOT_DIR, "config/gradient.json"))
+        
+    def get_sunrise_color(self, t_cur, interpolation='linear', scale="sunrise_01_rgb") -> tuple[float, float, float]:
+        """
+            t_cur is relative percentual progress
+        """
+        if scale not in self.color_pallet:
+            raise KeyError(f"{scale} cannot be found")
+        color_pallet = self.color_pallet[scale]
+        colors = [hex2np(x) for x in color_pallet]
+        time_ref = [0, .25, .5, .75, 1]
+        if interpolation == 'linear':
+            r,g,b = [interp(t_cur, time_ref, color) for color in colors]
+        else:
+            # fallback linear
+            r, g, b = [interp(t_cur, time_ref, color) for color in colors]
+        
+        r /= 255
+        g /= 255
+        b /= 255
+        return r,g,b
+
+
+    def get_sunrise_intensity(self, t_cur, interpolation='linear', gradient="exp") -> float:
+        #grad = load_json(os.path.join(ROOT_DIR, "config/gradient.json"), gradient)
+        grad = self.grad[gradient]
+        
+        time_ref = [0, .25, .5, .75, 1]
+
+        if interpolation == 'linear':
+            lum = interp(t_cur, time_ref, grad)
+        else:
+            lum = interp(t_cur, time_ref, grad)
+            
+        return lum
 
 
 """

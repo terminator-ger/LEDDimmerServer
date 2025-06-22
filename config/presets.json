@@ -5,6 +5,6 @@
         "gradient": "linear",
         "gradient_interpolation": "linear",
         "wakeup_sequence_len": 30,
-        "pwm_steps": 100
+        "pwm_steps": 400
     }
 }
