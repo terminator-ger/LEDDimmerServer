@@ -1,5 +1,8 @@
 from typing import Dict
 import json
+import os
+
+from LEDDimmerServer.utils import ROOT_DIR
 
 def load_json(f, name="sunrise_01_rgb"):
     with open(f, "r", encoding='utf-8') as fp:
@@ -44,7 +47,7 @@ def get_sunrise_color(t_cur, interpolation='linear', scale="sunrise_01_rgb") -> 
     """
         t_cur is relative percentual progress
     """
-    color_pallet = load_json("config/color.json", scale)
+    color_pallet = load_json(os.path.join(ROOT_DIR, "config/color.json")), scale)
     colors = [hex2np(x) for x in color_pallet]
     time_ref = [0, .25, .5, .75, 1]
     if interpolation == 'linear':
@@ -60,7 +63,7 @@ def get_sunrise_color(t_cur, interpolation='linear', scale="sunrise_01_rgb") -> 
 
 
 def get_sunrise_intensity(t_cur, interpolation='linear', gradient="exp") -> float:
-    grad = load_json("config/gradient.json", gradient)
+    grad = load_json(os.path.join(ROOT_DIR,"config/gradient.json"), gradient)
     time_ref = [0, .25, .5, .75, 1]
 
     if interpolation == 'linear':

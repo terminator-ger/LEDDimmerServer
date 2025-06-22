@@ -8,7 +8,6 @@ from http.server import HTTPServer
 from LEDDimmerServer.DimmerBackend import DimmerBackend
 from LEDDimmerServer.HTTPHandler import HTTPHandler
 from LEDDimmerServer.utils import ROOT_DIR, get_ssl_context
-import ssl
 import subprocess
 from pathlib import Path
 

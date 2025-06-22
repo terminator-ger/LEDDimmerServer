@@ -11,5 +11,6 @@ systemctl stop LEDDimmerServer.service
 systemctl disable LEDDimmerServer.service  
 rm /etc/systemd/system/LEDDimmerServer.service
 cp LEDDimmerServer.service /etc/systemd/system/LEDDimmerServer.service
+pigpiod
 systemctl enable LEDDimmerServer.service
 systemctl start LEDDimmerServer.service
