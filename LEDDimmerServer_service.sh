@@ -3,7 +3,7 @@
 retcode=0
 
 while true; do  
-    source /home/led/LEDDimmerServer/venv/bin/activate
+    source /home/led/LEDDimmerServer/ledvenv/bin/activate
 
     if [ "$retcode" -eq 42 ]; then
         # update

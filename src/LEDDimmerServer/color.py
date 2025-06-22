@@ -49,7 +49,7 @@ def get_sunrise_color(t_cur, interpolation='linear', scale="sunrise_01_rgb") -> 
     """
         t_cur is relative percentual progress
     """
-    color_pallet = load_json(os.path.join(ROOT_DIR, "config/color.json")), scale)
+    color_pallet = load_json(os.path.join(ROOT_DIR, "config/color.json"), scale)
     colors = [hex2np(x) for x in color_pallet]
     time_ref = [0, .25, .5, .75, 1]
     if interpolation == 'linear':
