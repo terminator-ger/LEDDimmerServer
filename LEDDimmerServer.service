@@ -3,9 +3,9 @@ Description=Example systemd service.
 
 [Service]
 After=network.target
-User=pi
+User=led
 Type=simple
-ExecStart=/bin/bash /home/pi/LEDDimmerServer/LEDDimmerServer_service.sh
+ExecStart=/bin/bash /home/led/LEDDimmerServer/LEDDimmerServer_service.sh
 
 [Install]
 WantedBy=multi-user.target
