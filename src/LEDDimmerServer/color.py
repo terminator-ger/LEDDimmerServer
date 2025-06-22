@@ -1,3 +1,4 @@
+import logging
 from typing import Dict
 import json
 import os
@@ -5,6 +6,7 @@ import os
 from LEDDimmerServer.utils import ROOT_DIR
 
 def load_json(f, name="sunrise_01_rgb"):
+    logging.info(f"Loading json file {f} for {name}")
     with open(f, "r", encoding='utf-8') as fp:
         colors = json.load(fp)
         if name not in colors:
@@ -63,7 +65,7 @@ def get_sunrise_color(t_cur, interpolation='linear', scale="sunrise_01_rgb") -> 
 
 
 def get_sunrise_intensity(t_cur, interpolation='linear', gradient="exp") -> float:
-    grad = load_json(os.path.join(ROOT_DIR,"config/gradient.json"), gradient)
+    grad = load_json(os.path.join(ROOT_DIR, "config/gradient.json"), gradient)
     time_ref = [0, .25, .5, .75, 1]
 
     if interpolation == 'linear':
