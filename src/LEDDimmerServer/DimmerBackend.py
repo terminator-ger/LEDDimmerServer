@@ -1,4 +1,3 @@
-import json
 import logging
 import sys
 import time
@@ -6,24 +5,19 @@ from datetime import datetime, timedelta, timezone
 from threading import Lock, Timer
 from typing import Dict, Tuple
 
-import astral
 from astral import Observer, sun
 import pytz
-import requests
-import simplejson
 from gpiozero import PWMLED, RGBLED
 
-from LEDDimmerServer.color import get_sunrise_intensity, modify_json, SunriseProgress
+from LEDDimmerServer.color import  modify_json, SunriseProgress
 from LEDDimmerServer.utc import UTC
 
 
 class DimmerBackend:
     def __init__(self, config):
         self.wakeup_task = None
-        self.is_in_wakeup_sequence: Lock = Lock()
         self.check_config(config)
         self.config = config
-        self.progress = SunriseProgress()
         
 
         # PIN CONFIGURATION
@@ -44,6 +38,7 @@ class DimmerBackend:
         logging.info("hardware initialized")
         self.utc = UTC()
         self.epoch = datetime.now(tz=timezone.utc).timestamp()
+        self.progress = SunriseProgress()
     
     def get_status(self) -> Dict:
         ''' Returns the status of the LED Dimmer Server
@@ -127,10 +122,10 @@ class DimmerBackend:
             If the light is already off, it does nothing.
         '''
         # disable wakeup if there is one active...
-        if (self.is_in_wakeup_sequence.locked() and
+        if (self.progress.wakeup_sequence_is_locked() and
             self.wakeup_task is not None):
                 self.wakeup_task.cancel()
-                self.is_in_wakeup_sequence.release_lock()
+                self.progress.wakeup_sequence_release_lock()
                 
         if self.config["has_w"]:
             logging.debug("set w: %s", self.on_off_w_pwm)
@@ -221,17 +216,17 @@ class DimmerBackend:
         if self.wakeup_task is not None:
             self.wakeup_task.cancel()
         
-        if self.is_in_wakeup_sequence.locked():
+        if self.progress.wakeup_sequence_is_locked():
             # disable wakeup if there is one active...
-            self.is_in_wakeup_sequence.release_lock()
+            self.progress.wakeup_sequence_release_lock()
             self.off()
         
         if wakeup_time == 0:
             logging.info("Wakeup sequence disabled")
             return (True, 0)
-            
-        self.wakeup_task = Timer(
-            t - (self.config['active_profile']['wakeup_sequence_len'] * 60), self.start_incr_light)
+        
+        time_delta = t - (self.config['active_profile']['wakeup_sequence_len'] * 60)
+        self.wakeup_task = Timer(time_delta, self.progress.run)
         self.wakeup_task.start()
         return (True, wakeup_time)
 
@@ -258,15 +253,15 @@ class DimmerBackend:
             self.wakeup_task.join()
             return (True, 0)
        
-        if self.is_in_wakeup_sequence.locked():
+        if self.progress.wakeup_sequence_is_locked():
             # disable wakeup if there is one active...
-            self.is_in_wakeup_sequence.release_lock()
+            self.progress.wakeup_sequence_release_lock()
             self.off() 
 
         logging.info("Wakeup at")
         logging.info("%s", wakeup_time)
-        self.wakeup_task = Timer(t.total_seconds(
-        ) - (self.config['active_profile']['wakeup_sequence_len'] * 60), self.start_incr_light)
+        time_delta = t.total_seconds() - (self.config['active_profile']['wakeup_sequence_len'] * 60)
+        self.wakeup_task = Timer(time_delta, self.progress.run)
         self.wakeup_task.start()
         return (True, int(wakeup_time.timestamp()))
 
@@ -286,7 +281,7 @@ class DimmerBackend:
         #values = [float(x) for x in values]
         for key, values in data.items():
             modify_json(key, values, "config/gradient.json")
-        self.progress.reload()
+        self.progress.reload(self.config)
         return True
 
     def preset(self, data_string) -> bool:
@@ -318,28 +313,4 @@ class DimmerBackend:
         '''
         sys.exit(42)  # quit with code for update
 
-    def start_incr_light(self) -> None:
-        ''' Starts the wakeup sequence
-            This will increase the light intensity over a period of time.
-        '''
-        logging.debug("starting up with the lightshow")
-        self.is_in_wakeup_sequence.acquire()
-        pause = (self.config['active_profile']
-                 ['wakeup_sequence_len'] * 60) / self.config['active_profile']['pwm_steps']
-
-        for progress in range(0, self.config['active_profile']['pwm_steps']):
-            p = progress / self.config['active_profile']['pwm_steps']
-            lum = self.progress.get_sunrise_intensity(
-                p, self.config['active_profile']['gradient_interpolation'], self.config['active_profile']['gradient'])
-            logging.info("setting light to %s", str(lum))
-            if self.config['has_w']:
-                self.GPIO_W_PWM.value = lum
-            if self.config['has_rgb']:
-                self.GPIO_RGB_PWM.value = lum
-                
-            time.sleep(pause)
-            if not self.is_in_wakeup_sequence.locked():
-                # if the wakeup sequence is cancelled, stop the lightshow
-                logging.info("wakeup sequence cancelled")
-                self.off()
-                return
+  

@@ -1,8 +1,12 @@
+from asyncio import Task
 import logging
+from threading import Lock
+import time
 from typing import Dict
 import json
 import os
 
+from gpiozero import PWMLED, RGBLED
 from LEDDimmerServer.utils import ROOT_DIR
 
 def load_json_dict(f) -> Dict:
@@ -51,13 +55,64 @@ def interp(x0, xs, ys):
         py=y
 
 class SunriseProgress:
-    def __init__(self):
-        self.reload()
+    def __init__(self, config, rgb: RGBLED, rgb_pwm: PWMLED, w_pwm: PWMLED):
+        self.reload(config)
+        # copy pins
+        self.GPIO_RGB = rgb
+        self.GPIO_RGB_PWM = rgb_pwm
+        self.GPIO_W_PWM = w_pwm
+
+        self.pause = (self.config['active_profile']
+                 ['wakeup_sequence_len'] * 60) / self.config['active_profile']['pwm_steps']
+
+        self.sunrise_task = None
+        self.is_in_wakeup_sequence: Lock = Lock()
+    
+    def wakeup_sequence_is_locked(self) -> bool:
+        return self.is_in_wakeup_sequence.locked()
+
+    def wakeup_sequence_lock(self):
+        self.is_in_wakeup_sequence.acquire_lock()
+    
+    def wakeup_sequence_release_lock(self):
+        self.is_in_wakeup_sequence.release_lock()
+
+    def run(self):
+        logging.debug("starting up with the lightshow")
+        self.wakeup_sequence_lock()
+ 
+        for progress in range(0, self.config['active_profile']['pwm_steps']):
+            p = progress / self.config['active_profile']['pwm_steps']
+            lum = self.get_sunrise_intensity(
+                        p, 
+                        self.config['active_profile']['gradient_interpolation'], 
+                        self.config['active_profile']['gradient'])
+            
+            logging.info("setting light to %s", str(lum))
+            
+            if self.config['has_w']:
+                self.GPIO_W_PWM.value = lum
+            if self.config['has_rgb']:
+                color = self.get_sunrise_color(
+                        p, 
+                        self.config['active_profile']['color_interpolation'], 
+                        self.config['active_profile']['color'])
+ 
+                self.GPIO_RGB_PWM.value = lum
+                self.GPIO_RGB.value(color)
+                
+            time.sleep(self.pause)
+            if not self.is_in_wakeup_sequence.locked():
+                # if the wakeup sequence is cancelled, stop the lightshow
+                logging.info("wakeup sequence cancelled")
+                self.off()
+                return
         
-    def reload(self):
+    def reload(self, config):
         """
             Reload the color and gradient json files
         """
+        self.config = config
         self.color_pallet = load_json_dict(os.path.join(ROOT_DIR, "config/color.json"))
         self.grad = load_json_dict(os.path.join(ROOT_DIR, "config/gradient.json"))
         
