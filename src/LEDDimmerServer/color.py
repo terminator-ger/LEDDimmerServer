@@ -113,7 +113,7 @@ class SunriseProgress:
             Reload the color and gradient json files
         """
         self.config = config
-        self.color_pallet = load_json_dict(os.path.join(ROOT_DIR, "config/color.json"))
+        self.color_pallet = load_json_dict(os.path.join(ROOT_DIR, "config/colors.json"))
         self.grad = load_json_dict(os.path.join(ROOT_DIR, "config/gradient.json"))
         
     def get_sunrise_color(self, t_cur, interpolation='linear', scale="sunrise_01_rgb") -> tuple[float, float, float]:

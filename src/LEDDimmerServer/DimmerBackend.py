@@ -22,9 +22,13 @@ class DimmerBackend:
 
         # PIN CONFIGURATION
         # @see http://abyz.me.uk/rpi/pigpio/index.html#Type_3
+        self.GPIO_RGB = None
+        self.GPIO_RGB_PWM = None
+        self.GPIO_W_PWM = None
         if self.config['has_w']:
             self.GPIO_W_PWM = PWMLED(pin=self.config["GPIO_W_PWM"])
             self.on_off_w_pwm = 1.0
+            
 
         if self.config["has_rgb"]:
             self.GPIO_RGB = RGBLED(red=self.config["GPIO_R"],
@@ -38,7 +42,7 @@ class DimmerBackend:
         logging.info("hardware initialized")
         self.utc = UTC()
         self.epoch = datetime.now(tz=timezone.utc).timestamp()
-        self.progress = SunriseProgress()
+        self.progress = SunriseProgress(config, self.GPIO_RGB, self.GPIO_RGB_PWM, self.GPIO_W_PWM)
     
     def get_status(self) -> Dict:
         ''' Returns the status of the LED Dimmer Server

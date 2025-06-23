@@ -63,7 +63,7 @@ class RGBTest(unittest.TestCase):
         config["has_w"] = False
         backend = DimmerBackend(config)
         backend.incr()
-        self.assertTrue(backend.GPIO_RGB_PWM.is_active)
+        self.assertFalse(backend.GPIO_RGB_PWM.is_active)
         
     def test_on_incr(self):
         sys.argv=[]

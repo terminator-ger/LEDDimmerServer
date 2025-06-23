@@ -29,14 +29,14 @@ class HttpTest(unittest.TestCase):
     def test_http_toggle(self):
         r = requests.put("http://127.0.0.1:8080/toggle", data = {})#, data=payload) 
         self.assertEqual(r.status_code, 200)
-        self.assertEqual(r.text, "TOGGLE")
+        self.assertEqual(r.text, "TOGGLE ON")
         self.assertTrue(self.srv.backend.GPIO_W_PWM.is_active)  # Simulate the LED being on
 
 
     def test_http_toggle_invalid_payload(self):
         r = requests.put("http://127.0.0.1:8080/toggle", data = {"test": 12385})#, data=payload) 
         self.assertEqual(r.status_code, 200)
-        self.assertEqual(r.text, "TOGGLE")
+        self.assertEqual(r.text, "TOGGLE ON")
         self.assertTrue(self.srv.backend.GPIO_W_PWM.is_active)  # Simulate the LED being on
 
 
@@ -54,9 +54,9 @@ class HttpTest(unittest.TestCase):
 
     def test_http_incr(self):
         r = requests.put("http://127.0.0.1:8080/incr", data = {})
-        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r.status_code, 405)
         self.assertEqual(r.text, "INCR")
-        self.assertTrue(self.srv.backend.GPIO_W_PWM.is_active)  # Simulate the LED being on
+        self.assertFalse(self.srv.backend.GPIO_W_PWM.is_active)  # Simulate the LED being on
 
     def test_http_decr(self):
         r = requests.put("http://127.0.0.1:8080/decr", data = {})

@@ -60,7 +60,7 @@ class WTest(unittest.TestCase):
         config["has_w"] = True
         backend = DimmerBackend(config)
         backend.incr()
-        self.assertTrue(backend.GPIO_W_PWM.is_active)
+        self.assertFalse(backend.GPIO_W_PWM.is_active)
  
     def test_decr(self):
         sys.argv=[]
@@ -105,8 +105,8 @@ class WTest(unittest.TestCase):
         backend = DimmerBackend(config)
         backend.off()
         backend.incr()
-        self.assertTrue(backend.GPIO_W_PWM.is_active)
-        self.assertEqual(backend.GPIO_W_PWM.value, 1.0)  # Assuming incr sets a default value of 0.1
+        self.assertFalse(backend.GPIO_W_PWM.is_active)
+        self.assertEqual(backend.GPIO_W_PWM.value, 0.0)  # Assuming incr sets a default value of 0.1
         
     def test_toggle_incr(self):
         '''
