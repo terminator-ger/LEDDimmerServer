@@ -93,9 +93,10 @@ class SunriseProgress:
                 self.GPIO_W.value = lum
             if self.config['has_rgb']:
                 color = self.get_sunrise_color(
-                        p, 
-                        self.config['active_profile']['color_interpolation'], 
-                        self.config['active_profile']['color'])
+                        t_cur=p, 
+                        lum=lum,
+                        interpolation=self.config['active_profile']['color_interpolation'], 
+                        scale=self.config['active_profile']['color'])
  
                 self.GPIO_RGB.value(color)
                 
@@ -114,7 +115,7 @@ class SunriseProgress:
         self.color_pallet = load_json_dict(os.path.join(ROOT_DIR, "config/colors.json"))
         self.grad = load_json_dict(os.path.join(ROOT_DIR, "config/gradient.json"))
         
-    def get_sunrise_color(self, t_cur, interpolation='linear', scale="sunrise_01_rgb") -> tuple[float, float, float]:
+    def get_sunrise_color(self, t_cur:float, lum:float=1.0, interpolation:str='linear', scale:str="sunrise_01_rgb") -> tuple[float, float, float]:
         """
             t_cur is relative percentual progress
         """
@@ -129,9 +130,14 @@ class SunriseProgress:
             # fallback linear
             r, g, b = [interp(t_cur, time_ref, color) for color in colors]
         
+        # normalize
         r /= 255
         g /= 255
         b /= 255
+        # scale by luminecence
+        r *= lum
+        g *= lum
+        b *= lum
         return r,g,b
 
 
