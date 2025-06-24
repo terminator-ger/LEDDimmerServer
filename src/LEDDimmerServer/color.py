@@ -2,7 +2,7 @@ from asyncio import Task
 import logging
 from threading import Lock
 import time
-from typing import Dict
+from typing import Dict, List, Tuple
 import json
 import os
 
@@ -35,14 +35,18 @@ def modify_json(key: str, value, json_name: str):
     safe_json(json_name, _dict)
 
 
-def hex2np(color_hex_code):
-    if "#" in color_hex_code:
-        color_hex_code = color_hex_code.trim("#")
-    assert len(color_hex_code) == 6
+def hexcodes2list(color_hex_codes: List[str]) -> Tuple[List[int], List[int], List[int]]:
+    r = []
+    g = []
+    b = []
+    for color_hex_code in color_hex_codes:
+        if "#" in color_hex_code:
+            color_hex_code = color_hex_code.lstrip("#")
+        assert len(color_hex_code) == 6
 
-    r = int(color_hex_code[:2], 16)
-    g = int(color_hex_code[2:4], 16)
-    b = int(color_hex_code[4:], 16)
+        r.append(int(color_hex_code[:2], 16))
+        g.append(int(color_hex_code[2:4], 16))
+        b.append(int(color_hex_code[4:], 16))
     return r,g,b
 
 def interp(x0, xs, ys):
@@ -70,10 +74,10 @@ class SunriseProgress:
     def wakeup_sequence_is_locked(self) -> bool:
         return self.is_in_wakeup_sequence.locked()
 
-    def wakeup_sequence_lock(self):
+    def wakeup_sequence_lock(self) -> None:
         self.is_in_wakeup_sequence.acquire_lock()
     
-    def wakeup_sequence_release_lock(self):
+    def wakeup_sequence_release_lock(self) -> None:
         self.is_in_wakeup_sequence.release_lock()
 
     def run(self):
@@ -98,7 +102,7 @@ class SunriseProgress:
                         interpolation=self.config['active_profile']['color_interpolation'], 
                         scale=self.config['active_profile']['color'])
  
-                self.GPIO_RGB.value(color)
+                self.GPIO_RGB.value = color
                 
             time.sleep(self.pause)
             if not self.is_in_wakeup_sequence.locked():
@@ -122,7 +126,7 @@ class SunriseProgress:
         if scale not in self.color_pallet:
             raise KeyError(f"{scale} cannot be found")
         color_pallet = self.color_pallet[scale]
-        colors = [hex2np(x) for x in color_pallet]
+        colors = hexcodes2list(color_pallet)
         time_ref = [0, .25, .5, .75, 1]
         if interpolation == 'linear':
             r,g,b = [interp(t_cur, time_ref, color) for color in colors]

@@ -212,6 +212,21 @@ class RGBWTest(unittest.TestCase):
         self.assertFalse(backend.GPIO_RGB.is_active)
         backend.wakeup_task.cancel()     
         
+    def test_wakeuptime_run(self):
+            sys.argv=[]
+            config = parse_arguments()
+            config["has_rgb"] = True
+            config["has_w"] = True
+            timedelta = config['active_profile']['wakeup_sequence_len'] * 60
+            current_epoch = int(time.time())
+            wakeup_time = current_epoch + timedelta + 1  # More than wakeup period
+            backend = DimmerBackend(config)
+            backend.wakeuptime(wakeup_time)
+            time.sleep(5)
+            self.assertTrue(backend.GPIO_RGB.is_active)
+            self.assertTrue(backend.GPIO_W.is_active)
+            backend.wakeup_task.cancel()     
+        
         
 class ColorConversionTest(unittest.TestCase):
     _table = [

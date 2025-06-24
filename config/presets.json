@@ -1,6 +1,6 @@
 {
     "default": {
-        "color": null,
+        "color": "sunrise_01_rgb",
         "color_interpolation": "linear",
         "gradient": "linear",
         "gradient_interpolation": "linear",
