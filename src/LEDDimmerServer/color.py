@@ -55,12 +55,11 @@ def interp(x0, xs, ys):
         py=y
 
 class SunriseProgress:
-    def __init__(self, config, rgb: RGBLED, rgb_pwm: PWMLED, w_pwm: PWMLED):
+    def __init__(self, config, rgb_pwm: RGBLED, w_pwm: PWMLED):
         self.reload(config)
         # copy pins
-        self.GPIO_RGB = rgb
-        self.GPIO_RGB_PWM = rgb_pwm
-        self.GPIO_W_PWM = w_pwm
+        self.GPIO_RGB = rgb_pwm
+        self.GPIO_W = w_pwm
 
         self.pause = (self.config['active_profile']
                  ['wakeup_sequence_len'] * 60) / self.config['active_profile']['pwm_steps']
@@ -91,14 +90,13 @@ class SunriseProgress:
             logging.info("setting light to %s", str(lum))
             
             if self.config['has_w']:
-                self.GPIO_W_PWM.value = lum
+                self.GPIO_W.value = lum
             if self.config['has_rgb']:
                 color = self.get_sunrise_color(
                         p, 
                         self.config['active_profile']['color_interpolation'], 
                         self.config['active_profile']['color'])
  
-                self.GPIO_RGB_PWM.value = lum
                 self.GPIO_RGB.value(color)
                 
             time.sleep(self.pause)

@@ -30,53 +30,53 @@ class HttpTest(unittest.TestCase):
         r = requests.put("http://127.0.0.1:8080/toggle", data = {})#, data=payload) 
         self.assertEqual(r.status_code, 200)
         self.assertEqual(r.text, "TOGGLE ON")
-        self.assertTrue(self.srv.backend.GPIO_W_PWM.is_active)  # Simulate the LED being on
+        self.assertTrue(self.srv.backend.GPIO_W.is_active)  # Simulate the LED being on
 
 
     def test_http_toggle_invalid_payload(self):
         r = requests.put("http://127.0.0.1:8080/toggle", data = {"test": 12385})#, data=payload) 
         self.assertEqual(r.status_code, 200)
         self.assertEqual(r.text, "TOGGLE ON")
-        self.assertTrue(self.srv.backend.GPIO_W_PWM.is_active)  # Simulate the LED being on
+        self.assertTrue(self.srv.backend.GPIO_W.is_active)  # Simulate the LED being on
 
 
     def test_http_on_payload(self):
         r = requests.put("http://127.0.0.1:8080/on", data = {})
         self.assertEqual(r.status_code, 200)
         self.assertEqual(r.text, "ON")
-        self.assertTrue(self.srv.backend.GPIO_W_PWM.is_active)  # Simulate the LED being on
+        self.assertTrue(self.srv.backend.GPIO_W.is_active)  # Simulate the LED being on
         
     def test_http_off_payload(self):
         r = requests.put("http://127.0.0.1:8080/off", data = {})
         self.assertEqual(r.status_code, 200)
         self.assertEqual(r.text, "OFF")
-        self.assertFalse(self.srv.backend.GPIO_W_PWM.is_active)  # Simulate the LED being on
+        self.assertFalse(self.srv.backend.GPIO_W.is_active)  # Simulate the LED being on
 
     def test_http_incr(self):
         r = requests.put("http://127.0.0.1:8080/incr", data = {})
         self.assertEqual(r.status_code, 405)
         self.assertEqual(r.text, "INCR")
-        self.assertFalse(self.srv.backend.GPIO_W_PWM.is_active)  # Simulate the LED being on
+        self.assertFalse(self.srv.backend.GPIO_W.is_active)  # Simulate the LED being on
 
     def test_http_decr(self):
         r = requests.put("http://127.0.0.1:8080/decr", data = {})
         self.assertEqual(r.status_code, 405)    
         self.assertEqual(r.text, "DECR")
-        self.assertFalse(self.srv.backend.GPIO_W_PWM.is_active)  # Simulate the LED being on
+        self.assertFalse(self.srv.backend.GPIO_W.is_active)  # Simulate the LED being on
 
     def test_http_wakeup(self):
         now = int(time.time()) + 60 * 30 + 1
         r = requests.put("http://127.0.0.1:8080/wakeuptime", data = json.dumps({"time": now}))
         self.assertEqual(r.status_code, 200)
         self.assertEqual(r.text, f"WAKEUP {now}")
-        self.assertFalse(self.srv.backend.GPIO_W_PWM.is_active)  # Simulate the LED being on
+        self.assertFalse(self.srv.backend.GPIO_W.is_active)  # Simulate the LED being on
 
     def test_http_wakeup_cancel(self):
         now = int(time.time()) + 60 * 30 + 1
         r = requests.put("http://127.0.0.1:8080/wakeuptime", data = json.dumps({"time": now}))
         self.assertEqual(r.status_code, 200)
         self.assertEqual(r.text, f"WAKEUP {now}")
-        self.assertFalse(self.srv.backend.GPIO_W_PWM.is_active)  # Simulate the LED being on
+        self.assertFalse(self.srv.backend.GPIO_W.is_active)  # Simulate the LED being on
         self.assertTrue(self.srv.backend.wakeup_task.is_alive())
         r = requests.put("http://127.0.0.1:8080/wakeuptime", data = json.dumps({"time": 0}))
         self.assertEqual(r.status_code, 200)

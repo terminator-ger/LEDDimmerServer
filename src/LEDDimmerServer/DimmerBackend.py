@@ -11,6 +11,7 @@ from gpiozero import PWMLED, RGBLED
 
 from LEDDimmerServer.color import  modify_json, SunriseProgress
 from LEDDimmerServer.utc import UTC
+from LEDDimmerServer.utils import add_float_tuple
 
 
 class DimmerBackend:
@@ -23,10 +24,9 @@ class DimmerBackend:
         # PIN CONFIGURATION
         # @see http://abyz.me.uk/rpi/pigpio/index.html#Type_3
         self.GPIO_RGB = None
-        self.GPIO_RGB_PWM = None
-        self.GPIO_W_PWM = None
+        self.GPIO_W = None
         if self.config['has_w']:
-            self.GPIO_W_PWM = PWMLED(pin=self.config["GPIO_W_PWM"])
+            self.GPIO_W = PWMLED(pin=self.config["GPIO_W"], frequency=self.config['PWM_frequency_hz'])
             self.on_off_w_pwm = 1.0
             
 
@@ -34,15 +34,13 @@ class DimmerBackend:
             self.GPIO_RGB = RGBLED(red=self.config["GPIO_R"],
                                    green=self.config["GPIO_G"],
                                    blue=self.config["GPIO_B"],
-                                   pwm=False)
-            self.GPIO_RGB_PWM = PWMLED(pin=self.config['GPIO_RGB_PWM'])
-            self.on_off_rgb = (0, 0, 0)
-            self.on_off_rgb_pwm = 1.0
+                                   pwm=True)
+            self.on_off_rgb_pwm = (1.0, 1.0, 1.0)
 
         logging.info("hardware initialized")
         self.utc = UTC()
         self.epoch = datetime.now(tz=timezone.utc).timestamp()
-        self.progress = SunriseProgress(config, self.GPIO_RGB, self.GPIO_RGB_PWM, self.GPIO_W_PWM)
+        self.progress = SunriseProgress(config, self.GPIO_RGB, self.GPIO_W)
     
     def get_status(self) -> Dict:
         ''' Returns the status of the LED Dimmer Server
@@ -51,7 +49,6 @@ class DimmerBackend:
         status = {
             'has_w': self.config['has_w'],
             'has_rgb': self.config['has_rgb'],
-            'rgb': self.on_off_rgb,
             'w_pwm': self.on_off_w_pwm,
             'rgb_pwm': self.on_off_rgb_pwm,
             'is_in_wakeup_sequence': self.is_in_wakeup_sequence.locked(),
@@ -72,8 +69,7 @@ class DimmerBackend:
             "colors": self.config['colors'],
             "gradient": self.config['gradient'],    
             "presets": self.config['presets'],
-            "gpio_w_pwm": self.config['GPIO_W_PWM'],
-            "gpio_rgb_pwm": self.config['GPIO_RGB_PWM'],
+            "GPIO_W": self.config['GPIO_W'],
             "gpio_r": self.config['GPIO_R'],
             "gpio_g": self.config['GPIO_G'],
             "gpio_b": self.config['GPIO_B'],
@@ -93,11 +89,12 @@ class DimmerBackend:
         ''' Toggles the light on or off'''
         logging.debug("--- TOGGLE")
 
-        if (self.config['has_w'] and self.GPIO_W_PWM.is_active) \
-            or (self.config['has_rgb'] and self.GPIO_RGB_PWM.is_active):
+        if (self.config['has_w'] and self.GPIO_W.is_active) \
+            or (self.config['has_rgb'] and self.GPIO_RGB.is_active):
 
             self.off()
             return False
+        
         else:
             self.on()
             return True
@@ -110,14 +107,12 @@ class DimmerBackend:
         if self.config["has_w"]:
             #self.on_off_w_pwm = 1.0
             logging.debug("set w: %s", self.on_off_w_pwm)
-            self.GPIO_W_PWM.on()
-            self.GPIO_W_PWM.value = self.on_off_w_pwm
+            self.GPIO_W.on()
+            self.GPIO_W.value = self.on_off_w_pwm
 
         if self.config["has_rgb"]:
-            #self.on_off_rgb_pwm = 1.0
-            logging.debug("set rgb: %s", self.on_off_rgb)
-            self.GPIO_RGB_PWM.on()
-            self.GPIO_RGB_PWM.value = self.on_off_rgb_pwm
+            self.GPIO_RGB.on()
+            self.GPIO_RGB.value = self.on_off_rgb_pwm
             
         return True
 
@@ -133,15 +128,11 @@ class DimmerBackend:
                 
         if self.config["has_w"]:
             logging.debug("set w: %s", self.on_off_w_pwm)
-            self.GPIO_W_PWM.off()
-            #self.on_off_w_pwm = 0
-            #self.GPIO_W_PWM.value = self.on_off_w_pwm
+            self.GPIO_W.off()
 
         if self.config["has_rgb"]:
-            logging.debug("set rgb: %s", self.on_off_rgb)
-            #self.on_off_rgb_pwm = 0
-            #self.GPIO_RGB_PWM.value = self.on_off_rgb_pwm
-            self.GPIO_RGB_PWM.off()
+            logging.debug("set rgb: %s", self.on_off_rgb_pwm)
+            self.GPIO_RGB.off()
 
         return True
 
@@ -152,24 +143,26 @@ class DimmerBackend:
 
         logging.debug("--- INCR")
         if self.config['has_w']:
-            if not self.GPIO_W_PWM.is_active:
+            if not self.GPIO_W.is_active:
                 logging.debug("W_PWM is not active, cannot incr")
                 return False
-            self.on_off_w_pwm = min(self.on_off_w_pwm + 0.10, 1)
-            self.GPIO_W_PWM.value = self.on_off_w_pwm
-            if self.GPIO_W_PWM.value > 0:
-                self.GPIO_W_PWM.on()
+            self.on_off_w_pwm = min(self.on_off_w_pwm + 0.1, 1.0)
+            self.GPIO_W.value = self.on_off_w_pwm
+            if self.GPIO_W.value > 0:
+                self.GPIO_W.on()
 
         if self.config['has_rgb']:
-            if not self.GPIO_RGB_PWM.is_active:
+            if not self.GPIO_RGB.is_active:
                 logging.debug("W_PWM is not active, cannot incr")
                 return False
-            self.on_off_rgb_pwm = min(self.on_off_rgb_pwm + 0.10, 1)
-            self.GPIO_RGB_PWM.value = self.on_off_rgb_pwm
-            if self.GPIO_RGB_PWM.value > 0:
-                self.GPIO_RGB_PWM.on()
+            self.on_off_rgb_pwm = add_float_tuple(self.on_off_rgb_pwm, -0.1)
+            self.GPIO_RGB.value = self.on_off_rgb_pwm
+            if any([x > 0 for x in self.GPIO_RGB.value]):
+                self.GPIO_RGB.on()
            
         return True
+    
+      
 
     def decr(self) -> bool:
         ''' Decreases the light intensity by 10%
@@ -177,23 +170,23 @@ class DimmerBackend:
         '''
         logging.debug("--- DECR")
         if self.config['has_w']:
-            if not self.GPIO_W_PWM.is_active:
+            if not self.GPIO_W.is_active:
                 logging.debug("W_PWM is not active, cannot decr")
                 return False
-            self.on_off_w_pwm = max(self.on_off_w_pwm - 0.10, 0)
-            self.GPIO_W_PWM.value = self.on_off_w_pwm
-            if self.GPIO_W_PWM.value == 0:
-                self.GPIO_W_PWM.off()
+            self.on_off_w_pwm = max(self.on_off_w_pwm - 0.1, 0.0)
+            self.GPIO_W.value = self.on_off_w_pwm
+            if self.GPIO_W.value == 0:
+                self.GPIO_W.off()
 
 
         if self.config['has_rgb']:
-            if not self.GPIO_RGB_PWM.is_active:
+            if not self.GPIO_RGB.is_active:
                 logging.debug("RGB_PWM is not active, cannot decr")
                 return False
-            self.on_off_rgb_pwm = max(self.on_off_rgb_pwm - 0.10, 0)
-            self.GPIO_RGB_PWM.value = self.on_off_rgb_pwm
-            if self.GPIO_RGB_PWM.value == 0:
-                self.GPIO_RGB_PWM.off()
+            self.on_off_rgb_pwm = add_float_tuple(self.on_off_rgb_pwm, - 0.10)
+            self.GPIO_RGB.value = self.on_off_rgb_pwm
+            if any([x == 0 for x in self.GPIO_RGB.value]):
+                self.GPIO_RGB.off()
 
         return True
 
