@@ -19,6 +19,10 @@ jobs:
           python -m pip install --upgrade pip
           pip install pytest pytest-cov
           pip install -r requirements.txt
+        
+      - name: Install Package
+        run: 
+          pip install .
 
       - name: Run Tests with Coverage
         run: python -m pytest --cov --cov-report xml
