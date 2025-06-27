@@ -1,4 +1,6 @@
 # LEDDimmerServer
+[![codecov](https://codecov.io/gh/<username>/<repo>/branch/main/graph/badge.svg)](https://codecov.io/gh/<username>/<repo>)
+
 Is a Python based REST-server on your Raspi that acts as control-devices
 between the LED-Strip and your [Android App](https://github.com/terminator-ger/Sunriser).
 
