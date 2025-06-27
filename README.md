@@ -1,18 +1,18 @@
 # LEDDimmerServer
 Is a Python based REST-server on your Raspi that acts as control-devices
-between the LED-Strip and your [Android App](https://github.com/terminator-ger/LedDimmerWidget).
+between the LED-Strip and your [Android App](https://github.com/terminator-ger/Sunriser).
 
 ## Installation
-It is build upon a standard Raspian installation. 
-
+# Install using pypi
 ```bash
- sudo apt-get install python        #python 2.7
- sudo apt-get install python-pip 
- sudo apt-get install rpi.gpio
- ```
-Use pip to install all dependencies 
-```python
-pip install -r python_dependencies.txt
+python -m pip install LEDDimmerServer
+```
+
+# Setup 
+```bash
+sudo cp LEDDimmerServer.service /etc/system.d/system
+sudo systemctl daemon-reload
+sudo systemctl start LEDDimmerServer
 ```
 
 Start PI-GPIOD on boot, root is important here
@@ -22,7 +22,6 @@ sudo crontab -e
 and then add the lines
 ```bash
 @reboot     /usr/local/bin/pigpiod
-@reboot     nohup python LEDDimmerServer.py &
 ```
 to start the gpio daemon and the LEDDimmer.
 
