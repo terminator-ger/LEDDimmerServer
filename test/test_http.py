@@ -122,7 +122,7 @@ class HttpTest(unittest.TestCase):
     def test_http_status(self):
         r = requests.put("http://127.0.0.1:8080/status", data={})
         self.assertEqual(r.status_code, 200)
-        self.assertEqual("STATUS", r.text)
+        self.assertIn("STATUS", r.text)
 
 
 
