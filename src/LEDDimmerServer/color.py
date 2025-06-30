@@ -68,7 +68,6 @@ class SunriseProgress:
         self.pause = (self.config['active_profile']
                  ['wakeup_sequence_len'] * 60) / self.config['active_profile']['pwm_steps']
 
-        self.sunrise_task = None
         self.is_in_wakeup_sequence: Lock = Lock()
     
     def wakeup_sequence_is_locked(self) -> bool:
@@ -108,7 +107,6 @@ class SunriseProgress:
             if not self.is_in_wakeup_sequence.locked():
                 # if the wakeup sequence is cancelled, stop the lightshow
                 logging.info("wakeup sequence cancelled")
-                self.off()
                 return
         
     def reload(self, config):
@@ -259,6 +257,39 @@ def _v(m1, m2, hue):
         return m1 + (m2-m1)*(TWO_THIRD-hue)*6.0
     return m1
 
+
+def clip(value, min_value, max_value):
+    """
+    Clip the value to be within the specified range.
+    """
+    return max(min_value, min(value, max_value))
+
+def rad2deg(radians):
+    """
+    Convert radians to degrees.
+    """
+    return radians * (180.0 / math.pi)
+
+def rgb2hsi(red,green,blue):
+    s = 0
+    i = 0
+    h = []
+    RG = red-green+0.001  # Red-Green, add a constant to prevent undefined value
+    RB = red-blue+0.001  # Red-Blue
+    GB = green-blue+0.001  # Green-Blue
+    theta = math.acos(clip(((0.5*(RG+RB))/(RG**2+RB*GB)**0.5), -1, 1))  # Still in radians
+    theta = rad2deg(theta)  # Convert to degrees
+    if blue <= green:
+        h = theta
+    else:
+        h = 360 - theta
+    # Hue range will be automatically scaled to 0-255 by matplotlib for display
+    # We will need to convert manually to range of 0-360 in hsi2rgb function
+    #h = ((h - h.min()) * (1/(h.max() - h.min()) * 360))  # Scale h to 0-360
+    minRGB = min(min(red, green), blue)
+    s = 1-((3/(red+green+blue+0.001))*minRGB)  # Add 0.001 to prevent divide by zero
+    i = (red+green+blue)/3  # Intensity: 0-1
+    return h, s, i
 
 def hsi_to_rgb(h, s, i):
     h_ = h / 6.0
