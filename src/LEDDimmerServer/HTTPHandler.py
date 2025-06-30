@@ -2,6 +2,7 @@ import logging
 from http.server import SimpleHTTPRequestHandler
 
 import simplejson
+import json
 
 from LEDDimmerServer.DimmerBackend import DimmerBackend
 
@@ -66,10 +67,10 @@ class HTTPHandler(SimpleHTTPRequestHandler):
             raise RuntimeError("Backend not initialized!")
 
         if "/status" in self.path:
-            self.response(200, "STATUS " + self.backend.get_status())
+            self.response(200, "STATUS " + json.dumps(self.backend.get_status()))
         
         elif "/config" in self.path:
-            self.response(200, "CONFIG " + self.backend.get_config())
+            self.response(200, "CONFIG " + json.dumps(self.backend.get_config()))
             
         elif "/toggle" in self.path:
             if self.backend.toggle():
