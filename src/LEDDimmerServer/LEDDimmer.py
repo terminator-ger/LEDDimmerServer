@@ -62,6 +62,8 @@ class LEDDimmer:
 
     def run(self):
         logging.info("- start httpd")
+        logging.info("- host: %s", self.config['host'])
+        logging.info("- port: %d", self.config['port'])
         self.httpd.serve_forever(1)
     
     def shutdown(self):
