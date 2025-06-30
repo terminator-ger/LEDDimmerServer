@@ -25,6 +25,9 @@ class DimmerBackend:
         # @see http://abyz.me.uk/rpi/pigpio/index.html#Type_3
         self.GPIO_RGB = None
         self.GPIO_W = None
+        self.on_off_w_pwm = None
+        self.on_off_rgb_pwm = None
+        
         if self.config['has_w']:
             self.GPIO_W = PWMLED(pin=self.config["GPIO_W"], frequency=self.config['PWM_frequency_hz'])
             self.on_off_w_pwm = 1.0

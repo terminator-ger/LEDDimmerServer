@@ -119,6 +119,12 @@ class HttpTest(unittest.TestCase):
         self.assertEqual(r.status_code, 200)
         self.assertEqual("GRADIENT", r.text)
 
+    def test_http_status(self):
+        r = requests.put("http://127.0.0.1:8080/status", data={})
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual("STATUS", r.text)
+
+
 
 
 
