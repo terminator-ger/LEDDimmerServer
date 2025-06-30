@@ -51,10 +51,12 @@ class DimmerBackend:
             'has_rgb': self.config['has_rgb'],
             'w_pwm': self.on_off_w_pwm,
             'rgb_pwm': self.on_off_rgb_pwm,
-            'is_in_wakeup_sequence': self.is_in_wakeup_sequence.locked(),
+            'is_in_wakeup_sequence': self.progress.is_in_wakeup_sequence.locked(),
             'wakeup_task_alive': self.wakeup_task.is_alive() if self.wakeup_task else False,
             "wakeup_time": self.wakeuptime(0)[1] if self.wakeup_task else 0
         }
+        print("--- STATUS ---")
+        logging.info("status: %s", status)
         return status
     
     def get_config(self) -> Dict:

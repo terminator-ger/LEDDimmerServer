@@ -3,9 +3,11 @@ from http.server import SimpleHTTPRequestHandler
 
 import simplejson
 
+from LEDDimmerServer.DimmerBackend import DimmerBackend
+
 
 class HTTPHandler(SimpleHTTPRequestHandler):
-    def __init__(self, backend, *args, **kwargs):
+    def __init__(self, backend: DimmerBackend, *args, **kwargs):
         self.backend = backend
         super().__init__(*args, **kwargs)
 
@@ -64,10 +66,10 @@ class HTTPHandler(SimpleHTTPRequestHandler):
             raise RuntimeError("Backend not initialized!")
 
         if "/status" in self.path:
-            self.response(200, "STATUS " + self.backend.status())
+            self.response(200, "STATUS " + self.backend.get_status())
         
         elif "/config" in self.path:
-            self.response(200, "CONFIG " + self.backend.config())
+            self.response(200, "CONFIG " + self.backend.get_config())
             
         elif "/toggle" in self.path:
             if self.backend.toggle():
