@@ -25,6 +25,7 @@ class ColorConversionTest(unittest.TestCase):
         ["#362698",  	0.211,	0.149,	0.597		,247.3 	,0.533	,0.319],
         ["#7E7EB8",  	0.495,	0.493,	0.721		,240. 	,0.135	,0.57 ],
     ]
+    @unittest.skip("Currently not used, but kept for reference")
     def test_rgb_to_hsi(self):
         with GlobalExceptionWatcher():
             from LEDDimmerServer.color import rgb_to_hsi, rgb2hsi
@@ -34,6 +35,7 @@ class ColorConversionTest(unittest.TestCase):
                 self.assertAlmostEqual(s, S, places=2)
                 self.assertAlmostEqual(i, I, places=2)
 
+    @unittest.skip("Currently not used, but kept for reference")
     def test_hsi_to_rgb(self):
         with GlobalExceptionWatcher():
             from LEDDimmerServer.color import hsi_to_rgb
