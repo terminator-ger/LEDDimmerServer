@@ -7,9 +7,11 @@ from http.server import HTTPServer
 
 from LEDDimmerServer.DimmerBackend import DimmerBackend
 from LEDDimmerServer.HTTPHandler import HTTPHandler
-from LEDDimmerServer.utils import ROOT_DIR, get_ssl_context
+from LEDDimmerServer.utils import  get_ssl_context
 import subprocess
 from pathlib import Path
+from importlib.resources import files
+
 
 class LEDDimmer:
     def __init__(self, config):
@@ -82,14 +84,14 @@ def parse_arguments(*args):
                            help="Run in virtual mode, no hardware access, only simulation")
     argparse_config = argparser.parse_args(*args)
 
-    with open(os.path.join(ROOT_DIR, "config/config.json"), 'r', encoding="utf-8") as cfg_file:
+    json_config = files("config").joinpath("config.json")
+    with json_config.open() as cfg_file:
         json_config = json.load(cfg_file)
 
-    with open(os.path.join(ROOT_DIR, "config/presets.json"), 'r', encoding="utf-8") as cfg_file:
+    presets_config = files("config").joinpath("presets.json")
+    with presets_config.open() as cfg_file:
         active_profile = json.load(cfg_file)
         _key = json_config['sunrise_profile']
-        #if 'profile' in json_config and json_config['profile'] in active_profile:
-        #    _key = json_config['sunrise_profile']
         argparse_config.__dict__['active_profile'] = active_profile[_key]
 
     # fill in config from json if they are not give by argparse

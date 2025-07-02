@@ -7,27 +7,36 @@ import json
 import os
 
 from gpiozero import PWMLED, RGBLED
-from LEDDimmerServer.utils import ROOT_DIR
+from importlib.resources import files
 
 def load_json_dict(f) -> Dict:
     logging.info(f"Loading json file {f}")
-    with open(f, "r", encoding='utf-8') as fp:
+    config_file = files("config").joinpath(f)
+    with config_file.open() as fp:
         return json.load(fp)
  
 def load_json(f, name="sunrise_01_rgb"):
     logging.info(f"Loading json file {f} for {name}")
-    with open(f, "r", encoding='utf-8') as fp:
+    config_file = files("config").joinpath(f)
+    with config_file.open() as fp:
         colors = json.load(fp)
         if name not in colors:
             raise KeyError(f"{name} cannot be found")
     return colors[name]
 
 def safe_json(f, dict: Dict):
-    with open(f, "w", encoding='utf-8') as fp:
+    config_file = files("config").joinpath(f)
+    with config_file.open("w", encoding='utf-8') as fp:
         json.dump(dict, fp, sort_keys=True, indent=4)
 
 def modify_json(key: str, value, json_name: str):
-    with open(json_name, "r", encoding='utf-8') as json_file:
+    """    Modify a json file by adding or updating a key-value pair.
+    If the key already exists, it will be updated with the new value.
+    If the key does not exist, it will be added.
+    """
+    logging.info(f"Modifying json file {json_name} with key {key} and value {value}")
+    config_file = files("config").joinpath(json_name)
+    with config_file.open("r", encoding='utf-8') as json_file:
         _dict = json.load(json_file)
     if _dict is None:
         raise ValueError(f"Cannot load json file {json_name}")
@@ -116,9 +125,9 @@ class SunriseProgress:
             Reload the color and gradient json files
         """
         self.config = config
-        self.color_pallet = load_json_dict(os.path.join(ROOT_DIR, "config/colors.json"))
-        self.grad = load_json_dict(os.path.join(ROOT_DIR, "config/gradient.json"))
-        
+        self.color_pallet = load_json_dict("colors.json")
+        self.grad = load_json_dict("gradient.json")
+
     def get_sunrise_color(self, t_cur:float, lum:float=1.0, interpolation:str='linear', scale:str="sunrise_01_rgb") -> tuple[float, float, float]:
         """
             t_cur is relative percentual progress
@@ -146,7 +155,6 @@ class SunriseProgress:
 
 
     def get_sunrise_intensity(self, t_cur, interpolation='linear', gradient="exp") -> float:
-        #grad = load_json(os.path.join(ROOT_DIR, "config/gradient.json"), gradient)
         grad = self.grad[gradient]
         
         time_ref = [0, .25, .5, .75, 1]

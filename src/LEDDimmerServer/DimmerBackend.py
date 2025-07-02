@@ -205,8 +205,9 @@ class DimmerBackend:
         if self.wakeup_task is not None and self.wakeup_task.is_alive():
             logging.debug("Cancelling wakeup task")
             self.wakeup_task.cancel()
+            if self.progress.wakeup_sequence_is_locked():
+                self.progress.wakeup_sequence_release_lock()
             self.wakeup_task.join()
-            self.progress.wakeup_sequence_release_lock()
             self.off()
 
     def wakeuptime(self, wakeup_time: int) -> Tuple[bool, int]:
@@ -287,7 +288,7 @@ class DimmerBackend:
             name [[rgb], [rgb], ...]
         '''
         for key, values in dict.items():
-            modify_json(key, values, "config/colors.json")
+            modify_json(key, values, "colors.json")
         return True
 
     def gradient(self, data: Dict) -> bool:
@@ -297,7 +298,7 @@ class DimmerBackend:
         #key, values = data_string.split(" ")
         #values = [float(x) for x in values]
         for key, values in data.items():
-            modify_json(key, values, "config/gradient.json")
+            modify_json(key, values, "gradient.json")
         self.progress.reload(self.config)
         return True
 
@@ -321,7 +322,7 @@ class DimmerBackend:
             :param data_string: The data string containing the profile name
         '''
         _, profile = data_string.split(" ")
-        modify_json('profile', profile, 'config/config.json')
+        modify_json('profile', profile, 'config.json')
         return True
 
     def update(self) -> None:

@@ -3,8 +3,6 @@ from pathlib import Path
 import ssl
 from typing import Tuple
 
-ROOT_DIR = Path(__file__).parent.parent.parent.absolute()
-print(Path(__file__))
 
 def get_ssl_context(certfile, keyfile):
     context = ssl.SSLContext(ssl.PROTOCOL_TLSv1_2)
