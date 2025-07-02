@@ -197,6 +197,18 @@ class DimmerBackend:
 
         return True
 
+    def interrupt_wakeup(self) -> None:
+        ''' Interrupts the wakeup sequence
+            If there is no wakeup sequence running, it does nothing.
+        '''
+        logging.debug("--- INTERRUPT WAKEUP")
+        if self.wakeup_task is not None and self.wakeup_task.is_alive():
+            logging.debug("Cancelling wakeup task")
+            self.wakeup_task.cancel()
+            self.wakeup_task.join()
+            self.progress.wakeup_sequence_release_lock()
+            self.off()
+
     def wakeuptime(self, wakeup_time: int) -> Tuple[bool, int]:
         ''' Sets the wakeup time
             :param data_string: The data string containing the wakeup time in milliseconds since epoch  
@@ -222,8 +234,7 @@ class DimmerBackend:
         
         if self.progress.wakeup_sequence_is_locked():
             # disable wakeup if there is one active...
-            self.progress.wakeup_sequence_release_lock()
-            self.off()
+            self.interrupt_wakeup()
         
         if wakeup_time == 0:
             logging.info("Wakeup sequence disabled")

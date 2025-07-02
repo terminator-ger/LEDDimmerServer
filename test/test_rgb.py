@@ -173,8 +173,8 @@ class RGBTest(unittest.TestCase):
             self.assertFalse(backend.GPIO_RGB.is_active)
             self.assertEqual(backend.GPIO_RGB.value, (0.0, 0.0, 0.0))  # Assuming incr sets a default value of 0.1
             self.assertFalse(backend.wakeup_task.finished.is_set())
-            backend.wakeup_task.cancel()
-         
+            backend.interrupt_wakeup()
+
     def test_wakeuptime_less_than_wakeup_period_toggle(self):
         with GlobalExceptionWatcher():
             sys.argv=[]
@@ -191,8 +191,8 @@ class RGBTest(unittest.TestCase):
             self.assertFalse(backend.GPIO_RGB.is_active)
             self.assertEqual(backend.GPIO_RGB.value, (0.0, 0.0, 0.0))  # Assuming incr sets a default value of 0.1
             self.assertFalse(backend.wakeup_task.finished.is_set()) # Ensure the wakeup task has finished
-            backend.wakeup_task.cancel()
- 
+            backend.interrupt_wakeup()
+
     def test_wakeuptime_wakeuptime_toggle(self):
         with GlobalExceptionWatcher():
             sys.argv=[]
@@ -209,7 +209,7 @@ class RGBTest(unittest.TestCase):
      
             self.assertFalse(backend.GPIO_RGB.is_active)
             self.assertEqual(backend.wakeup_task.interval, 5)  # Ensure the wakeup task has finished
-            backend.wakeup_task.cancel()
+            backend.interrupt_wakeup()
 
     def test_wakeuptime_wakeuptime_interupt(self):
         with GlobalExceptionWatcher():
@@ -228,9 +228,8 @@ class RGBTest(unittest.TestCase):
      
             self.assertFalse(backend.GPIO_RGB.is_active)
             self.assertEqual(backend.wakeup_task.interval, 6)  # Ensure the wakeup task has finished
-            backend.wakeup_task.cancel()
- 
- 
+            backend.interrupt_wakeup()
+
     def test_sunrise_interupt(self):
         with GlobalExceptionWatcher():
             sys.argv=[]
@@ -241,8 +240,8 @@ class RGBTest(unittest.TestCase):
             backend.sunrise()
      
             self.assertFalse(backend.GPIO_RGB.is_active)
-            backend.wakeup_task.cancel()
- 
+            backend.interrupt_wakeup()
+
     def test_sunrise_sunrise_interupt(self):
         with GlobalExceptionWatcher():
             sys.argv=[]
@@ -254,7 +253,7 @@ class RGBTest(unittest.TestCase):
             backend.sunrise()
      
             self.assertFalse(backend.GPIO_RGB.is_active)
-            backend.wakeup_task.cancel()
+            backend.interrupt_wakeup()
             
  
  

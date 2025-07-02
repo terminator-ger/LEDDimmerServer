@@ -104,8 +104,10 @@ class SunriseProgress:
                 self.GPIO_RGB.value = color
                 
             time.sleep(self.pause)
+            print('wakeup')
             if not self.is_in_wakeup_sequence.locked():
                 # if the wakeup sequence is cancelled, stop the lightshow
+                print('cancelled')
                 logging.info("wakeup sequence cancelled")
                 return
         
