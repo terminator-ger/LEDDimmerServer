@@ -1,0 +1,9 @@
+gpiozero
+astral
+pytz
+requests
+simplejson
+
+[develop]
+pre-commit
+bump2version

@@ -1,0 +1,16 @@
+{
+    "sunrise_profile": "default",
+    "has_rgb": true,
+    "has_w": true,
+    "GPIO_R": 17,
+    "GPIO_G": 27,
+    "GPIO_B": 22,
+    "GPIO_W": 14,
+    "PWM_frequency_hz": 200,
+    "host": "led.local",
+    "port": 8080,
+    "latitude": 49.460983,
+    "longitude": 11.061859,
+    "time_zone": "Europe/Berlin",
+    "use_ssl": false
+}

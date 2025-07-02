@@ -1,0 +1,10 @@
+{
+    "default": {
+        "color": "sunrise_01_rgb",
+        "color_interpolation": "linear",
+        "gradient": "linear",
+        "gradient_interpolation": "linear",
+        "wakeup_sequence_len": 30,
+        "pwm_steps": 400
+    }
+}

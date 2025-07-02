@@ -1,0 +1,12 @@
+[Unit]
+Description=Example systemd service.
+
+[Service]
+After=network.target
+User=led
+Type=simple
+WorkingDirectory=/home/led/LEDDimmerServer
+ExecStart=/bin/bash /home/led/LEDDimmerServer/LEDDimmerServer_service.sh
+
+[Install]
+WantedBy=multi-user.target
