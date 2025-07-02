@@ -9,14 +9,14 @@ readme = "README.md"
 requires-python = ">=3.8"
 license = { text = "MIT" }
 dependencies = []
-include = ["config/*.json"]
 
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["LEDDimmerServer"]
 
-optional-dependencies = {
-    test = [
-        "unittest",
-    ]
-}
+[tool.setuptools.package-data]
+config = ["config/*.json"]
+
 
 [build-system]
 requires = ["setuptools>=61.0"]
