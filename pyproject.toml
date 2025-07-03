@@ -27,9 +27,9 @@ build-backend = "setuptools.build_meta"
 
 [tool.pdm.version]
 source = "file"
-path = "LEDDimmerServer/__version__.py"
+path = "src/LEDDimmerServer/__version__.py"
 
 [tool.setuptools_scm]
 version_scheme = "post-release"
 local_scheme = "node-and-date"
-write_to = "LEDDimmerServer/__version__.py"
+write_to = "src/LEDDimmerServer/__version__.py"
