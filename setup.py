@@ -1,11 +1,10 @@
 import os
 from setuptools import setup, find_packages
-
-BUILD_ID = os.environ.get("BUILD_BUILDID", "0")
+from src.__version__ import __version__
 
 setup(
     name="LEDDimmerServer",
-    version="0.1" + "." + BUILD_ID,
+    version=__version__,
     # Author details
     author="terminator",
     author_email="the.terminator.ger@gmail.com",
