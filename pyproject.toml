@@ -1,6 +1,5 @@
 [project]
 name = "leddimmerserver"
-version = "0.1.0"
 description = "A server for controlling LED dimmers"
 authors = [
     { name="terminator", email="the.terminator.ger@gmail.com" }
@@ -22,14 +21,13 @@ config = ["config/*.json"]
 
 
 [build-system]
-requires = ["setuptools>=61.0"]
+requires = ["setuptools>=61.0", "setuptools_scm"]
 build-backend = "setuptools.build_meta"
+
+[tool.setuptools_scm]
+write_to = "src/LEDDimmerServer/__version__.py"
 
 [tool.pdm.version]
 source = "file"
 path = "src/LEDDimmerServer/__version__.py"
 
-[tool.setuptools_scm]
-version_scheme = "post-release"
-local_scheme = "node-and-date"
-write_to = "src/LEDDimmerServer/__version__.py"

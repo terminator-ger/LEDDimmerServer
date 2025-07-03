@@ -1,10 +1,9 @@
 import os
 from setuptools import setup, find_packages
-from LEDDimmerServer.__version__ import __version__
 
 setup(
     name="LEDDimmerServer",
-    version=__version__,
+    use_scm_version=True,
     # Author details
     author="terminator",
     author_email="the.terminator.ger@gmail.com",
