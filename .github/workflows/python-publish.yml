@@ -31,6 +31,16 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
+      - name: Set dynamic SETUPTOOLS_SCM_PRETEND_VERSION with build number
+        run: |
+          BUILD_NUMBER=${{ github.run_number }}
+          # Extract current version from your __version__ file dynamically
+          BASE_VERSION=$(grep -Po '(?<=__version__ = ")[^"]*' src/__version__.py)
+          # Compose dev version for CI
+          PRETEND_VERSION="${BASE_VERSION}.dev${BUILD_NUMBER}"
+          echo "Using dynamic version: $PRETEND_VERSION"
+          echo "SETUPTOOLS_SCM_PRETEND_VERSION=${PRETEND_VERSION}" >> $GITHUB_ENV
+
       - name: Build release distributions
         run: |
           # NOTE: put your own distribution build steps here.
