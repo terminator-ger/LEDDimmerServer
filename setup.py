@@ -1,6 +1,6 @@
 import os
 from setuptools import setup, find_packages
-from src.__version__ import __version__
+from LEDDimmerServer.__version__ import __version__
 
 setup(
     name="LEDDimmerServer",
