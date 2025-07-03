@@ -3,7 +3,7 @@ name = "leddimmerserver"
 version = "0.1.0"
 description = "A server for controlling LED dimmers"
 authors = [
-    { name="Michael", email="your.email@example.com" }
+    { name="terminator", email="the.terminator.ger@gmail.com" }
 ]
 readme = "README.md"
 requires-python = ">=3.8"

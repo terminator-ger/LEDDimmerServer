@@ -7,8 +7,8 @@ setup(
     name="LEDDimmerServer",
     version="0.1" + "." + BUILD_ID,
     # Author details
-    author="Michael Lechner",
-    author_email="michael.lechner@t-online.de",
+    author="terminator",
+    author_email="the.terminator.ger@gmail.com",
     packages=find_packages("src"),
     package_dir={"": "src"},
     install_requires=["gpiozero", "astral", "pytz", "requests", "simplejson"],
