@@ -1,3 +1,11 @@
 .venv
 .vscode
 **/__pycache__
+LEDDimmerServer.egg-info/**
+src/LEDDimmerServer.egg-info/
+build/
+dist/
+**/*egg-info/
+*.egg-info/
+.installed.cfg
+*.egg
