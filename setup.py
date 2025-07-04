@@ -1,4 +1,3 @@
-import os
 from setuptools import setup, find_packages
 
 setup(
@@ -10,6 +9,5 @@ setup(
     packages=find_packages("src"),
     package_dir={"": "src"},
     install_requires=["gpiozero", "astral", "pytz", "requests", "simplejson"],
-    tests_require=["pytest", "pytest-nunit", "pytest-cov"],
-    extras_require={"develop": ["pre-commit", "bump2version"]},
+    tests_require=["unittest", "coverage"]
 )
