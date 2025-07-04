@@ -2,6 +2,8 @@
 
 retcode=0
 
+python3 -m pip install -U LEDDimmerServer
+
 while true; do  
     source /home/led/LEDDimmerServer/ledvenv/bin/activate
 
