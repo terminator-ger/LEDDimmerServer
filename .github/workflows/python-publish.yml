@@ -35,7 +35,7 @@ jobs:
         run: |
           BUILD_NUMBER=${{ github.run_number }}
           # Extract current version from your __version__ file dynamically
-          BASE_VERSION=$(grep -Po '(?<=__version__ = ")[^"]*' LEDDimmerServer/__version__.py)
+          BASE_VERSION=$(grep -Po '(?<=__version__ = ")[^"]*' src/LEDDimmerServer/__version__.py)
           # Compose dev version for CI
           PRETEND_VERSION="${BASE_VERSION}.dev${BUILD_NUMBER}"
           echo "Using dynamic version: $PRETEND_VERSION"
