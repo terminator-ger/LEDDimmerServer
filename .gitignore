@@ -9,3 +9,4 @@ dist/
 *.egg-info/
 .installed.cfg
 *.egg
+src/LEDDimmerServer/__version__.py
