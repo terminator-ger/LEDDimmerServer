@@ -40,7 +40,7 @@ jobs:
       - name: Set dynamic SETUPTOOLS_SCM_PRETEND_VERSION with build number
         run: |
           BASE_VERSION=$(git describe --tags --abbrev=0 | sed 's/^v//')
-          PRETEND_VERSION="${BASE_VERSION}.dev${BUILD_NUMBER}"
+          PRETEND_VERSION="${BASE_VERSION}.dev${{github.run_number}}_${{github.run_attempt}}"
           echo "Using dynamic version: $PRETEND_VERSION"
           echo "SETUPTOOLS_SCM_PRETEND_VERSION=${PRETEND_VERSION}" >> $GITHUB_ENV
 
