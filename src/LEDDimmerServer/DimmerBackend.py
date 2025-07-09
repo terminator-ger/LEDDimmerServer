@@ -3,12 +3,13 @@ import sys
 import time
 from datetime import datetime, timedelta, timezone
 from threading import Lock, Timer
-from typing import Dict, Tuple
+from typing import Dict, Optional, Tuple
 
 from astral import Observer, sun
 import pytz
 from gpiozero import PWMLED, RGBLED
 
+from LEDDimmerServer.Wakeup import Wakeup
 from LEDDimmerServer.color import  modify_json, SunriseProgress
 from LEDDimmerServer.utc import UTC
 from LEDDimmerServer.utils import add_float_tuple
@@ -16,7 +17,7 @@ from LEDDimmerServer.utils import add_float_tuple
 
 class DimmerBackend:
     def __init__(self, config):
-        self.wakeup_task = None
+        self.wakeup_task : Optional[Wakeup]= None
         self.check_config(config)
         self.config = config
         
@@ -27,7 +28,6 @@ class DimmerBackend:
         self.GPIO_W = None
         self.on_off_w_pwm = None
         self.on_off_rgb_pwm = None
-        self.wakeup_type = None
         
         if self.config['has_w']:
             self.GPIO_W = PWMLED(pin=self.config["GPIO_W"], frequency=self.config['PWM_frequency_hz'])
@@ -59,8 +59,8 @@ class DimmerBackend:
             'rgb_status': self.GPIO_RGB.value if self.GPIO_RGB else None,
             'is_in_wakeup_sequence': self.progress.is_in_wakeup_sequence.locked(),
             'wakeup_task_alive': self.wakeup_task.is_alive() if self.wakeup_task else False,
-            "wakeup_time": self.wakeuptime(0)[1] if self.wakeup_task else 0,
-            "wakeup_type": self.wakeup_type,
+            "wakeup_time": self.wakeup_task.wakeup_time if self.wakeup_task else None,
+            "wakeup_type": self.wakeup_task.wakeup_type if self.wakeup_task else None,
         }
         print("--- STATUS ---")
         logging.info("status: %s", status)
@@ -223,29 +223,22 @@ class DimmerBackend:
         if not isinstance(wakeup_time, int):
             raise TypeError("wakeup_time must be an integer")
 
-        now = int(time.time())
-        t = int((wakeup_time-now))
-
-        logging.info("--- sheduling wakeup in ")
-        logging.info("%d", t)
         logging.debug("killing old wakeups")
         logging.debug("returntime: ")
         logging.debug("%s", str(int(wakeup_time)))
 
-        if self.wakeup_task is not None:
-            self.wakeup_task.cancel()
-        
-        if self.progress.wakeup_sequence_is_locked():
-            # disable wakeup if there is one active...
-            self.interrupt_wakeup()
+        # if self.wakeup_task is not None:
+        #    self.wakeup_task.cancel()
+        #    self.wakeup_task.join()
+
+        #if self.progress.wakeup_sequence_is_locked():
+        self.interrupt_wakeup()
         
         if wakeup_time == 0:
             logging.info("Wakeup sequence disabled")
             return (True, 0)
-        
-        time_delta = t - (self.config['active_profile']['wakeup_sequence_len'] * 60)
-        self.wakeup_task = Timer(time_delta, self.progress.run)
-        self.wakeup_type = "alarm"
+        delay = self.config['active_profile']['wakeup_sequence_len'] * 60 
+        self.wakeup_task = Wakeup(wakeup_time, "alarm", self.progress.run, delay)
         self.wakeup_task.start()
         return (True, wakeup_time)
 
@@ -261,27 +254,25 @@ class DimmerBackend:
         local_tz = pytz.timezone(self.config['time_zone'])
 
         wakeup_time = sun.dawn(location, date=tomorrow, tzinfo=local_tz)
-        now = datetime.now(self.utc)
-
-        t = wakeup_time - now
 
         
         if self.wakeup_task is not None and self.wakeup_task.is_alive():
             logging.debug("Wakeuptask was set - cancel it")
-            self.wakeup_task.cancel()
-            self.wakeup_task.join()
+            #self.wakeup_task.cancel()
+            #self.wakeup_task.join()
+            self.interrupt_wakeup()
             return (True, 0)
        
         if self.progress.wakeup_sequence_is_locked():
             # disable wakeup if there is one active...
-            self.progress.wakeup_sequence_release_lock()
-            self.off() 
+            #self.progress.wakeup_sequence_release_lock()
+            #self.off() 
+            self.interrupt_wakeup()
 
         logging.info("Wakeup at")
         logging.info("%s", wakeup_time)
-        time_delta = t.total_seconds() - (self.config['active_profile']['wakeup_sequence_len'] * 60)
-        self.wakeup_task = Timer(time_delta, self.progress.run)
-        self.wakeup_type = "sunrise"
+        delay = self.config['active_profile']['wakeup_sequence_len'] * 60
+        self.wakeup_task = Wakeup(int(wakeup_time.timestamp()), "sunrise", self.progress.run, delay)
         self.wakeup_task.start()
         return (True, int(wakeup_time.timestamp()))
 
