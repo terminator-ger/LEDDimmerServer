@@ -22,6 +22,10 @@ jobs:
   
     steps:
       - uses: actions/checkout@v4
+        with:
+          # Checkout the repository at the commit that triggered the workflow
+          fetch-depth: 0  # Important to fetch all history for versioning
+
 
       - uses: actions/setup-python@v5
         with:
@@ -30,6 +34,7 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
+          python -m pip install build setuptools setuptools_scm wheel twine
           pip install -r requirements.txt
 
       - name: Set dynamic SETUPTOOLS_SCM_PRETEND_VERSION with build number
@@ -42,7 +47,6 @@ jobs:
       - name: Build release distributions
         run: |
           # NOTE: put your own distribution build steps here.
-          python -m pip install build
           python -m build
 
       - name: Upload distributions
