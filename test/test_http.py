@@ -64,6 +64,20 @@ class HttpTest(unittest.TestCase):
         self.assertEqual(r.text, "DECR")
         self.assertFalse(self.srv.backend.GPIO_W.is_active)  # Simulate the LED being on
 
+
+    def test_http_decr_10x_incr(self):
+        r = requests.put("http://127.0.0.1:8080/toggle", data = {})
+        for _ in range(10):
+            r = requests.put("http://127.0.0.1:8080/decr", data = {})
+        r = requests.put("http://127.0.0.1:8080/on", data = {})
+        r = requests.put("http://127.0.0.1:8080/incr", data = {})
+
+        self.assertEqual(r.status_code, 200)
+        self.assertEqual(r.text, "INCR")
+        self.assertAlmostEqual(self.srv.backend.GPIO_W.value, 1.0, delta=0.1)  # Simulate the LED being on at a low brightness
+        self.assertTrue(self.srv.backend.GPIO_W.is_active)  # Simulate the LED being on
+
+
     def test_http_wakeup(self):
         now = int(time.time()) + 60 * 30 + 1
         r = requests.put("http://127.0.0.1:8080/wakeuptime", data = json.dumps({"time": now}))

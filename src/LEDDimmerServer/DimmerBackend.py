@@ -114,13 +114,21 @@ class DimmerBackend:
         '''
 
         if self.config["has_w"]:
-            #self.on_off_w_pwm = 1.0
             logging.debug("set w: %s", self.on_off_w_pwm)
             self.GPIO_W.on()
+            if self.on_off_w_pwm < 0.1:
+                self.on_off_w_pwm = 0.1
             self.GPIO_W.value = self.on_off_w_pwm
 
         if self.config["has_rgb"]:
             self.GPIO_RGB.on()
+            if self.on_off_rgb_pwm[0] < 0.1:
+                self.on_off_rgb_pwm[0] = 0.1
+            if self.on_off_rgb_pwm[1] < 0.1:
+                self.on_off_rgb_pwm[1] = 0.1
+            if self.on_off_rgb_pwm[2] < 0.1:
+                self.on_off_rgb_pwm[2] = 0.1
+
             self.GPIO_RGB.value = self.on_off_rgb_pwm
             
         return True
@@ -184,8 +192,8 @@ class DimmerBackend:
                 return False
             self.on_off_w_pwm = max(self.on_off_w_pwm - 0.1, 0.0)
             self.GPIO_W.value = self.on_off_w_pwm
-            if self.GPIO_W.value == 0:
-                self.GPIO_W.off()
+            if self.GPIO_W.value < 0.1:
+                self.off()
 
 
         if self.config['has_rgb']:
@@ -194,8 +202,8 @@ class DimmerBackend:
                 return False
             self.on_off_rgb_pwm = add_float_tuple(self.on_off_rgb_pwm, - 0.10)
             self.GPIO_RGB.value = self.on_off_rgb_pwm
-            if any([x == 0 for x in self.GPIO_RGB.value]):
-                self.GPIO_RGB.off()
+            if any([x < 0.1 for x in self.GPIO_RGB.value]):
+                self.off()
 
         return True
 
