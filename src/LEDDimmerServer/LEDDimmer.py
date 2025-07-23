@@ -8,6 +8,10 @@ from http.server import HTTPServer
 from LEDDimmerServer.DimmerBackend import DimmerBackend
 from LEDDimmerServer.HTTPHandler import HTTPHandler
 from LEDDimmerServer.utils import  get_ssl_context
+try:
+    from LEDDimmerServer.__version__ import __version__ as version
+except ImportError:
+    version = "0.0.0"
 import subprocess
 from pathlib import Path
 from importlib.resources import files
@@ -63,6 +67,7 @@ class LEDDimmer:
         self.httpd.shutdown()
 
     def run(self):
+        logging.info("version: %s", version)
         logging.info("- start httpd")
         logging.info("- host: %s", self.config['host'])
         logging.info("- port: %d", self.config['port'])
