@@ -26,6 +26,12 @@ class HttpTest(unittest.TestCase):
         self.srv_thread.join()
         return super().tearDown()
     
+    def test_http_config(self):
+        r = requests.put("http://127.0.0.1:8080/config", data = {})
+        self.assertEqual(r.status_code, 200)
+        self.assertIn("CONFIG", r.text)
+
+
     def test_http_toggle(self):
         r = requests.put("http://127.0.0.1:8080/toggle", data = {})#, data=payload) 
         self.assertEqual(r.status_code, 200)

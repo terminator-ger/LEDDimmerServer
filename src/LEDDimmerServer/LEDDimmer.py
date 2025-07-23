@@ -90,9 +90,21 @@ def parse_arguments(*args):
 
     presets_config = files("config").joinpath("presets.json")
     with presets_config.open() as cfg_file:
-        active_profile = json.load(cfg_file)
+        profiles = json.load(cfg_file)
         _key = json_config['sunrise_profile']
-        argparse_config.__dict__['active_profile'] = active_profile[_key]
+        argparse_config.__dict__['active_profile'] = profiles[_key]
+        argparse_config.__dict__['presets'] = profiles
+
+    color_config = files("config").joinpath("colors.json")
+    with color_config.open() as cfg_file:
+        color_config = json.load(cfg_file)
+        argparse_config.__dict__['colors'] = color_config
+
+    gradient_config = files("config").joinpath("gradient.json")
+    with gradient_config.open() as cfg_file:
+        gradient_config = json.load(cfg_file)
+        argparse_config.__dict__['gradient'] = gradient_config
+
 
     # fill in config from json if they are not give by argparse
     for k_j, v_j in json_config.items():
