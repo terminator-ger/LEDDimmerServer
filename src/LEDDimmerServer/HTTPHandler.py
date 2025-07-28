@@ -154,7 +154,19 @@ class HTTPHandler(SimpleHTTPRequestHandler):
         elif '/default' in self.path:
             if self.backend.default(data_string):
                 self.response(200, "DEFAULT")
-            
+
+        elif '/update_config' in self.path:
+            if data_string is None or len(data_string) == 0:
+                self.response(400, "UpdateConfig without data")
+                return
+            data = simplejson.loads(data_string)
+            if self.backend.update_config(data):
+                self.response(200, "UPDATE_CONFIG")
+                return
+            self.response(500, "UPDATE_CONFIG failed")
+            return
+
+                        
         elif '/update' in self.path:
             self.backend.update()
         else:

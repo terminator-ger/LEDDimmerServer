@@ -6,7 +6,6 @@
     "GPIO_G": 27,
     "GPIO_B": 22,
     "GPIO_W": 14,
-    "PWM_frequency_hz": 200,
     "host": "led.local",
     "port": 8080,
     "latitude": 49.460983,

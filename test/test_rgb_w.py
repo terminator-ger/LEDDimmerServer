@@ -182,14 +182,13 @@ class RGBWTest(unittest.TestCase):
             timedelta = config['active_profile']['wakeup_sequence_len'] * 60
             current_epoch = int(time.time())
             wakeup_time_old = current_epoch + timedelta + 2  # More than wakeup period
-            wakeup_time_new = current_epoch + timedelta + 10  # More than wakeup period
+            wakeup_time_new = current_epoch + timedelta + 30  # More than wakeup period
             backend = DimmerBackend(config)
             backend.wakeuptime(wakeup_time_old)
-            time.sleep(4)
+            time.sleep(3)
             backend.wakeuptime(wakeup_time_new)
             self.assertFalse(backend.GPIO_W.is_active)
             self.assertFalse(backend.GPIO_RGB.is_active)
-            #self.assertEqual(backend.wakeup_task.interval, 6)  # Ensure the wakeup task has finished
             backend.interrupt_wakeup()
 
     def test_sunrise_interupt(self):

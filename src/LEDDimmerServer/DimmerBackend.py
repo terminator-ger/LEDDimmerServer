@@ -20,17 +20,24 @@ class DimmerBackend:
         self.wakeup_task : Optional[Wakeup]= None
         self.check_config(config)
         self.config = config
-        
+        self.init_modules()
+    
+    def get_pwm(self) -> int:
+       return self.config['presets'][self.config['sunrise_profile']]['pwm_steps']
 
+    def init_modules(self):
+    
         # PIN CONFIGURATION
         # @see http://abyz.me.uk/rpi/pigpio/index.html#Type_3
         self.GPIO_RGB = None
         self.GPIO_W = None
         self.on_off_w_pwm = None
         self.on_off_rgb_pwm = None
+
+        self.config['active_profile'] = self.config['presets'][self.config['sunrise_profile']]
         
         if self.config['has_w']:
-            self.GPIO_W = PWMLED(pin=self.config["GPIO_W"], frequency=self.config['PWM_frequency_hz'])
+            self.GPIO_W = PWMLED(pin=self.config["GPIO_W"], frequency=self.get_pwm())
             self.on_off_w_pwm = 1.0
             
 
@@ -44,8 +51,9 @@ class DimmerBackend:
         logging.info("hardware initialized")
         self.utc = UTC()
         self.epoch = datetime.now(tz=timezone.utc).timestamp()
-        self.progress = SunriseProgress(config, self.GPIO_RGB, self.GPIO_W)
-    
+        self.progress = SunriseProgress(self.config, self.GPIO_RGB, self.GPIO_W)
+
+
     def get_status(self) -> Dict:
         ''' Returns the status of the LED Dimmer Server
             :return: A dictionary containing the status of the LED Dimmer Server
@@ -70,20 +78,12 @@ class DimmerBackend:
         ''' Returns the configuration of the LED Dimmer Server
             :return: A dictionary containing the configuration of the LED Dimmer Server
         '''
-        config = {
-            "active_profile": self.config['active_profile'],
-            "latitude": self.config['latitude'],    
-            "longitude": self.config['longitude'],
-            "time_zone": self.config['time_zone'],  
-            "colors": self.config['colors'],
-            "gradient": self.config['gradient'],    
-            "presets": self.config['presets'],
-            "GPIO_W": self.config['GPIO_W'],
-            "gpio_r": self.config['GPIO_R'],
-            "gpio_g": self.config['GPIO_G'],
-            "gpio_b": self.config['GPIO_B'],
-        }
-        return config
+        return self.config
+
+    def update_config(self, config: Dict) -> bool:
+        self.config.update(config)
+        self.init_modules()
+        return True
 
     def check_config(self, config: Dict) -> bool:
         ''' Check if the config is valid
@@ -217,7 +217,9 @@ class DimmerBackend:
             self.wakeup_task.cancel()
             if self.progress.wakeup_sequence_is_locked():
                 self.progress.wakeup_sequence_release_lock()
+            logging.debug("Joining wakeup task")
             self.wakeup_task.join()
+            logging.debug("Wakeup task joined")
             self.off()
 
     def wakeuptime(self, wakeup_time: int) -> Tuple[bool, int]:
@@ -235,16 +237,12 @@ class DimmerBackend:
         logging.debug("returntime: ")
         logging.debug("%s", str(int(wakeup_time)))
 
-        # if self.wakeup_task is not None:
-        #    self.wakeup_task.cancel()
-        #    self.wakeup_task.join()
-
-        #if self.progress.wakeup_sequence_is_locked():
         self.interrupt_wakeup()
         
         if wakeup_time == 0:
             logging.info("Wakeup sequence disabled")
             return (True, 0)
+        
         delay = self.config['active_profile']['wakeup_sequence_len'] * 60 
         self.wakeup_task = Wakeup(wakeup_time, "alarm", self.progress.run, delay)
         self.wakeup_task.start()
@@ -266,15 +264,10 @@ class DimmerBackend:
         
         if self.wakeup_task is not None and self.wakeup_task.is_alive():
             logging.debug("Wakeuptask was set - cancel it")
-            #self.wakeup_task.cancel()
-            #self.wakeup_task.join()
             self.interrupt_wakeup()
             return (True, 0)
        
         if self.progress.wakeup_sequence_is_locked():
-            # disable wakeup if there is one active...
-            #self.progress.wakeup_sequence_release_lock()
-            #self.off() 
             self.interrupt_wakeup()
 
         logging.info("Wakeup at")

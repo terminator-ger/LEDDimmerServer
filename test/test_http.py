@@ -25,6 +25,39 @@ class HttpTest(unittest.TestCase):
         self.srv.shutdown()
         self.srv_thread.join()
         return super().tearDown()
+
+    def test_http_update_config(self):
+        config = {
+            "sunrise_profile": "test",
+            "latitude": 123.456,    
+            "longitude": 7.89,
+            "time_zone": "Europe/Berlin",  
+            "colors": {"beatiful": ["#123456", "#111111", "#223344", "#556677", "#778899"]},
+            "gradient": {},    
+            "presets": {
+                        "default": {
+                            "color": "sunrise_01_rgb",
+                            "color_interpolation": "linear",
+                            "gradient": "linear",
+                            "gradient_interpolation": "linear",
+                            "wakeup_sequence_len": 30,
+                            "pwm_steps": 400
+                        },
+                        "test": {
+                            "color": "beatiful",
+                            "color_interpolation": "exp",
+                            "gradient": "linear",
+                            "gradient_interpolation": "exp",
+                            "wakeup_sequence_len": 1,
+                            "pwm_steps": 1
+                        }
+            },
+            "GPIO_W": 1,
+        }
+        r = requests.put("http://127.0.0.1:8080/update_config", data = json.dumps(config))
+        self.assertEqual(r.status_code, 200)
+        self.assertIn("CONFIG", r.text)
+        self.assertEqual(self.srv.backend.config["sunrise_profile"], "test")
     
     def test_http_config(self):
         r = requests.put("http://127.0.0.1:8080/config", data = {})

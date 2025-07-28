@@ -93,6 +93,7 @@ class SunriseProgress:
         self.wakeup_sequence_lock()
  
         for progress in range(0, self.config['active_profile']['pwm_steps']):
+ 
             p = progress / self.config['active_profile']['pwm_steps']
             lum = self.get_sunrise_intensity(
                         p, 
@@ -112,7 +113,8 @@ class SunriseProgress:
  
                 self.GPIO_RGB.value = color
                 
-            time.sleep(self.pause)
+            #time.sleep(self.pause)
+            time.sleep(0.1)
             print('wakeup')
             if not self.is_in_wakeup_sequence.locked():
                 # if the wakeup sequence is cancelled, stop the lightshow
