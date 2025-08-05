@@ -34,7 +34,6 @@ class DimmerBackend:
         self.on_off_w_pwm = None
         self.on_off_rgb_pwm = None
 
-        self.config['active_profile'] = self.config['presets'][self.config['sunrise_profile']]
         
         if self.config['has_w']:
             self.GPIO_W = PWMLED(pin=self.config["GPIO_W"], frequency=self.get_pwm())
@@ -243,7 +242,7 @@ class DimmerBackend:
             logging.info("Wakeup sequence disabled")
             return (True, 0)
         
-        delay = self.config['active_profile']['wakeup_sequence_len'] * 60 
+        delay = get_active_profile(self.config)['wakeup_sequence_len'] * 60 
         self.wakeup_task = Wakeup(wakeup_time, "alarm", self.progress.run, delay)
         self.wakeup_task.start()
         return (True, wakeup_time)
@@ -272,7 +271,7 @@ class DimmerBackend:
 
         logging.info("Wakeup at")
         logging.info("%s", wakeup_time)
-        delay = self.config['active_profile']['wakeup_sequence_len'] * 60
+        delay = get_active_profile(self.config)['wakeup_sequence_len'] * 60
         self.wakeup_task = Wakeup(int(wakeup_time.timestamp()), "sunrise", self.progress.run, delay)
         self.wakeup_task.start()
         return (True, int(wakeup_time.timestamp()))

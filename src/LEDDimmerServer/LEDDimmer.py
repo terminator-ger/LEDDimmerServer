@@ -96,8 +96,6 @@ def parse_arguments(*args):
     presets_config = files("config").joinpath("presets.json")
     with presets_config.open() as cfg_file:
         profiles = json.load(cfg_file)
-        _key = json_config['sunrise_profile']
-        argparse_config.__dict__['active_profile'] = profiles[_key]
         argparse_config.__dict__['presets'] = profiles
 
     color_config = files("config").joinpath("colors.json")

@@ -9,6 +9,8 @@ import os
 from gpiozero import PWMLED, RGBLED
 from importlib.resources import files
 
+from LEDDimmerServer.utils import get_active_profile
+
 def load_json_dict(f) -> Dict:
     logging.info(f"Loading json file {f}")
     config_file = files("config").joinpath(f)
@@ -74,8 +76,7 @@ class SunriseProgress:
         self.GPIO_RGB = rgb_pwm
         self.GPIO_W = w_pwm
 
-        self.pause = (self.config['active_profile']
-                 ['wakeup_sequence_len'] * 60) / self.config['active_profile']['pwm_steps']
+        self.pause = (get_active_profile(self.config)['wakeup_sequence_len'] * 60) / get_active_profile(self.config)['pwm_steps']
 
         self.is_in_wakeup_sequence: Lock = Lock()
     
@@ -92,13 +93,13 @@ class SunriseProgress:
         logging.debug("starting up with the lightshow")
         self.wakeup_sequence_lock()
  
-        for progress in range(0, self.config['active_profile']['pwm_steps']):
+        for progress in range(0, get_active_profile(self.config)['pwm_steps']):
  
-            p = progress / self.config['active_profile']['pwm_steps']
+            p = progress / get_active_profile(self.config)['pwm_steps']
             lum = self.get_sunrise_intensity(
                         p, 
-                        self.config['active_profile']['gradient_interpolation'], 
-                        self.config['active_profile']['gradient'])
+                        get_active_profile(self.config)['gradient_interpolation'], 
+                        get_active_profile(self.config)['gradient'])
             
             logging.info("setting light to %s", str(lum))
             
@@ -108,8 +109,8 @@ class SunriseProgress:
                 color = self.get_sunrise_color(
                         t_cur=p, 
                         lum=lum,
-                        interpolation=self.config['active_profile']['color_interpolation'], 
-                        scale=self.config['active_profile']['color'])
+                        interpolation=get_active_profile(self.config)['color_interpolation'], 
+                        scale=get_active_profile(self.config)['color'])
  
                 self.GPIO_RGB.value = color
                 

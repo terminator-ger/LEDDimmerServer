@@ -56,3 +56,13 @@ class GlobalExceptionWatcher(object):
         if len(self._exceptions) != 0:
             tracebacks = os.linesep.join(self._exceptions)
             raise Exception(f'Exceptions in other threads: {tracebacks}')
+        
+
+def get_active_profile(config: dict) -> dict:
+    """
+    Returns the active profile from the config.
+    """
+    if 'sunrise_profile' in config and config['sunrise_profile'] in config['presets']:
+        return config['presets'][config['sunrise_profile']]
+    
+    raise ValueError("No active profile found in the configuration.")
