@@ -12,7 +12,7 @@ from gpiozero import PWMLED, RGBLED
 from LEDDimmerServer.Wakeup import Wakeup
 from LEDDimmerServer.color import  modify_json, SunriseProgress
 from LEDDimmerServer.utc import UTC
-from LEDDimmerServer.utils import add_float_tuple
+from LEDDimmerServer.utils import add_float_tuple, get_active_profile
 
 
 class DimmerBackend:
@@ -23,7 +23,7 @@ class DimmerBackend:
         self.init_modules()
     
     def get_pwm(self) -> int:
-       return self.config['presets'][self.config['sunrise_profile']]['pwm_steps']
+       return get_active_profile(self.config)['PWM_frequency_hz']
 
     def init_modules(self):
     
@@ -36,7 +36,8 @@ class DimmerBackend:
 
         
         if self.config['has_w']:
-            self.GPIO_W = PWMLED(pin=self.config["GPIO_W"], frequency=self.get_pwm())
+            self.GPIO_W = PWMLED(pin=self.config["GPIO_W"], 
+                                 frequency=self.get_pwm())
             self.on_off_w_pwm = 1.0
             
 
@@ -297,7 +298,7 @@ class DimmerBackend:
 
     def preset(self, data_string) -> bool:
         '''
-            preset color color_interpolation gradient gradient_interpolation wakeup_sequence_len pwm_steps
+            preset color color_interpolation gradient gradient_interpolation wakeup_sequence_len PWM_frequency_hz
         '''
         key, values = data_string.split(" ")
         _dict = {"color": values[0],
@@ -305,7 +306,7 @@ class DimmerBackend:
                  "gradient": values[2],
                  "gradient_interpolation": values[3],
                  "wakeup_sequence_len": values[4],
-                 "pwm_steps": values[5]
+                 "PWM_frequency_hz": values[5]
                  }
         modify_json(key, _dict, 'presets.json')
         return True

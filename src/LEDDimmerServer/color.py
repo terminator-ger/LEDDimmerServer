@@ -76,7 +76,7 @@ class SunriseProgress:
         self.GPIO_RGB = rgb_pwm
         self.GPIO_W = w_pwm
 
-        self.pause = (get_active_profile(self.config)['wakeup_sequence_len'] * 60) / get_active_profile(self.config)['pwm_steps']
+        self.pause = (get_active_profile(self.config)['wakeup_sequence_len'] * 60) / get_active_profile(self.config)['PWM_frequency_hz']
 
         self.is_in_wakeup_sequence: Lock = Lock()
     
@@ -93,9 +93,9 @@ class SunriseProgress:
         logging.debug("starting up with the lightshow")
         self.wakeup_sequence_lock()
  
-        for progress in range(0, get_active_profile(self.config)['pwm_steps']):
+        for progress in range(0, get_active_profile(self.config)['PWM_frequency_hz']):
  
-            p = progress / get_active_profile(self.config)['pwm_steps']
+            p = progress / get_active_profile(self.config)['PWM_frequency_hz']
             lum = self.get_sunrise_intensity(
                         p, 
                         get_active_profile(self.config)['gradient_interpolation'], 

@@ -5,6 +5,6 @@
         "gradient": "linear",
         "gradient_interpolation": "linear",
         "wakeup_sequence_len": 30,
-        "pwm_steps": 200
+        "PWM_frequency_hz": 200
     }
 }

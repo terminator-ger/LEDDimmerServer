@@ -41,7 +41,7 @@ class HttpTest(unittest.TestCase):
                             "gradient": "linear",
                             "gradient_interpolation": "linear",
                             "wakeup_sequence_len": 30,
-                            "pwm_steps": 400
+                            "PWM_frequency_hz": 400
                         },
                         "test": {
                             "color": "beatiful",
@@ -49,7 +49,7 @@ class HttpTest(unittest.TestCase):
                             "gradient": "linear",
                             "gradient_interpolation": "exp",
                             "wakeup_sequence_len": 1,
-                            "pwm_steps": 1
+                            "PWM_frequency_hz": 1
                         }
             },
             "GPIO_W": 1,

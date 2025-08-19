@@ -9,7 +9,7 @@ def _setup_logging():
     logging.basicConfig(level=logging.DEBUG,
                         format='%(asctime)s %(name)-12s %(levelname)-8s %(message)s',
                         datefmt='%d.%m.%y %H:%M:%S',
-                        filename='/home/led/LEDDimmerServer/LEDDimmer.log',
+                        filename='~/LEDDimmer.log',
                         filemode='w')
     # define a Handler which writes INFO messages or higher to the sys.stderr
     console = logging.StreamHandler()
