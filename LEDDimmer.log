@@ -1,0 +1,15 @@
+17.09.25 14:24:11 root         WARNING  Running in virtual mode, no hardware access, only simulation
+17.09.25 14:24:11 root         INFO     hardware initialized
+17.09.25 14:24:11 root         INFO     Loading json file colors.json
+17.09.25 14:24:11 root         INFO     Loading json file gradient.json
+17.09.25 14:24:11 root         INFO     LEDDimmer initialized with config: {'host': '192.168.0.108', 'port': 8080, 'virtual': True, 'presets': {'default': {'color': 'sunrise_01_rgb', 'color_interpolation': 'linear', 'gradient': 'linear', 'gradient_interpolation': 'linear', 'wakeup_sequence_len': 30, 'PWM_frequency_hz': 200}}, 'colors': {'high_sky': ['#0000FF', '#00FF00', '#FF0000', '#FFFFFF', '#000000'], 'sunrise_01_rgb': ['#ff0000', '#ff4d00', '#ff6700', '#ff8100', '#ffa700']}, 'gradient': {'custom': [0, 0.1, 0.2, 0.6, 0.8, 1.0], 'exp': [0.05, 0.15, 0.35, 0.7, 1], 'linear': [0.1, 0.25, 0.5, 0.75, 1.0]}, 'sunrise_profile': 'default', 'has_rgb': True, 'has_w': True, 'GPIO_R': 17, 'GPIO_G': 27, 'GPIO_B': 22, 'GPIO_W': 14, 'latitude': 49.460983, 'longitude': 11.061859, 'time_zone': 'Europe/Berlin', 'use_ssl': False}
+17.09.25 14:24:11 root         INFO     version: 0.1.4.dev19+gb6cbd2d24.d20250819
+17.09.25 14:24:11 root         INFO     - start httpd
+17.09.25 14:24:11 root         INFO     - host: 192.168.0.108
+17.09.25 14:24:11 root         INFO     - port: 8080
+17.09.25 14:24:21 root         DEBUG    -- PUT
+17.09.25 14:24:21 root         DEBUG    b''
+17.09.25 14:24:21 root         INFO     HTTP 200: OK
+17.09.25 14:26:23 root         DEBUG    -- PUT
+17.09.25 14:26:23 root         DEBUG    b''
+17.09.25 14:26:23 root         INFO     HTTP 200: OK

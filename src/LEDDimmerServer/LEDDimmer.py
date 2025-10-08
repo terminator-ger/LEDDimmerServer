@@ -23,6 +23,7 @@ class LEDDimmer:
         self.config = config
         self.backend : DimmerBackend = DimmerBackend(config)
         self.http_handler = partial(HTTPHandler, self.backend)
+        logging.info("LEDDimmer initialized with config: %s", self.config)
         self.httpd = HTTPServer((config['host'], int(config['port'])), RequestHandlerClass=self.http_handler)
         if config['use_ssl']:
             logging.info("- SSL enabled")
@@ -88,7 +89,7 @@ def parse_arguments(*args):
     argparser.add_argument("--virtual", default=False, action='store_true',
                            help="Run in virtual mode, no hardware access, only simulation")
     argparse_config = argparser.parse_args(*args)
-
+    
     json_config = files("config").joinpath("config.json")
     with json_config.open() as cfg_file:
         json_config = json.load(cfg_file)
